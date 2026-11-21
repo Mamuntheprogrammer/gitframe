@@ -21,9 +21,9 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
         label: 'Git = Local Engine (100% Offline)',
       };
       s.terminalLines = [
-        '$ # GIT — Distributed Version Control System (Local Engine)',
+        '$ # GIT - Distributed Version Control System (Local Engine)',
         'Created by: Linus Torvalds (2005) to manage the Linux kernel after BitKeeper ended free access.',
-        'Ownership: Free & Open-Source (GNU GPL v2) — owned by no company; community maintained.',
+        'Ownership: Free & Open-Source (GNU GPL v2) - owned by no company; community maintained.',
         'Scope: Powers Stages 1–3 (Workspace, Staging Area, Local Repo) right on your machine.',
       ];
       return s;
@@ -40,7 +40,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
         label: 'GitHub = Cloud Vault (Owned by Microsoft)',
       };
       s.terminalLines = [
-        '$ # GITHUB — Cloud Hosting & Collaboration Platform',
+        '$ # GITHUB - Cloud Hosting & Collaboration Platform',
         'Founded: 2008 (Tom Preston-Werner, Chris Wanstrath, PJ Hyett, Scott Chacon).',
         'Ownership: Acquired & owned by Microsoft since 2018 ($7.5B).',
         'Scope: Hosts Stage 4 (Remote Repo) + Pull Requests, Issues, Actions & Code Review.',
@@ -71,7 +71,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
     case 'version': {
       s.terminalLines = [
         `$ ${rawCommand}`,
-        'git version 2.47.1 — Local Git engine installed and ready.',
+        'git version 2.47.1 - Local Git engine installed and ready.',
       ];
       s.highlightStage = 'workspace';
       return s;
@@ -352,7 +352,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
 
     case 'commit_amend': {
       if (s.localCommits.length === 0) {
-        s.terminalLines = [`$ ${rawCommand}`, 'No previous commit to amend yet — make a commit first.'];
+        s.terminalLines = [`$ ${rawCommand}`, 'No previous commit to amend yet - make a commit first.'];
         return s;
       }
       const updatedMsg = effect.arg || 'Polish homepage';
@@ -449,7 +449,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.terminalLines = [
         `$ ${rawCommand}`,
         ...s.localCommits.slice(0, 3).map(
-          (c, i) => `commit ${c.id}${i === 0 ? ` (HEAD -> ${s.currentBranch})` : ''} — ${c.author}: ${c.message}`
+          (c, i) => `commit ${c.id}${i === 0 ? ` (HEAD -> ${s.currentBranch})` : ''} - ${c.author}: ${c.message}`
         ),
       ];
       return s;
@@ -489,7 +489,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
         s.highlightStage = 'local';
         s.terminalLines = [
           `$ ${rawCommand}`,
-          `HEAD is now at ${past.id} (${past.message}) — Detached HEAD mode.`,
+          `HEAD is now at ${past.id} (${past.message}) - Detached HEAD mode.`,
         ];
       }
       return s;
@@ -572,8 +572,8 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.terminalLines = [
         `$ ${rawCommand}`,
         untracked.length
-          ? `Dry run — would delete untracked files: ${untracked.map((f) => f.name).join(', ')}`
-          : 'Dry run — no untracked files to clean.',
+          ? `Dry run - would delete untracked files: ${untracked.map((f) => f.name).join(', ')}`
+          : 'Dry run - no untracked files to clean.',
       ];
       return s;
     }
@@ -613,7 +613,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.terminalLines = [
         `$ ${rawCommand}`,
         `Undid commit ${popped.id} ("${popped.message}").`,
-        'Files moved back to Staging Area — ready to edit message or re-commit.',
+        'Files moved back to Staging Area - ready to edit message or re-commit.',
       ];
       return s;
     }
@@ -691,7 +691,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.highlightStage = 'staging';
       s.terminalLines = [
         `$ ${rawCommand}`,
-        `rm '${target}' — Deleted from Workspace and staged the removal.`,
+        `rm '${target}' - Deleted from Workspace and staged the removal.`,
       ];
       return s;
     }
@@ -926,7 +926,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       };
       s.terminalLines = [
         `$ ${rawCommand}`,
-        'Updating 2b4d9a1..f4e81c9 — Fast-forward!',
+        'Updating 2b4d9a1..f4e81c9 - Fast-forward!',
         'No extra merge commit needed because main had no divergent commits.',
       ];
       return s;
@@ -1003,7 +1003,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.terminalLines = [
         `$ ${rawCommand}`,
         'Generated Ed25519 keypair at ~/.ssh/id_ed25519 & id_ed25519.pub',
-        'Copied public key to GitHub SSH Settings — passwordless auth ready!',
+        'Copied public key to GitHub SSH Settings - passwordless auth ready!',
       ];
       return s;
     }
@@ -1071,7 +1071,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.terminalLines = [
         `$ ${rawCommand}`,
         'Fetched latest commits into origin/main inside Local Repo.',
-        'Notice: Your Workspace files were NOT overwritten yet — safe to inspect first!',
+        'Notice: Your Workspace files were NOT overwritten yet - safe to inspect first!',
       ];
       return s;
     }
@@ -1232,7 +1232,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.terminalLines = [
         `$ ${rawCommand}`,
         `[${s.currentBranch} ${fixId}] Address PR review: debounce input`,
-        'Now run `git push` — your existing Pull Request #42 will update automatically!',
+        'Now run `git push` - your existing Pull Request #42 will update automatically!',
       ];
       return s;
     }
@@ -1256,7 +1256,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.terminalLines = [
         `$ ${rawCommand}`,
         `Updated origin/${s.currentBranch} -> Pull Request #42 automatically refreshed!`,
-        'Reviewer Sara clicked "Approve" — ready to Squash & Merge into main.',
+        'Reviewer Sara clicked "Approve" - ready to Squash & Merge into main.',
       ];
       return s;
     }
@@ -1338,8 +1338,8 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.highlightStage = 'remote';
       s.terminalLines = [
         `$ ${rawCommand}`,
-        'origin   -> git@github.com:mamun/ui-kit.git (YOUR fork — push here)',
-        'upstream -> git@github.com:awesome-org/ui-kit.git (ORIGINAL repo — pull updates here)',
+        'origin   -> git@github.com:mamun/ui-kit.git (YOUR fork - push here)',
+        'upstream -> git@github.com:awesome-org/ui-kit.git (ORIGINAL repo - pull updates here)',
       ];
       return s;
     }
@@ -1472,7 +1472,7 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       s.highlightStage = 'workspace';
       s.terminalLines = [
         `$ ${rawCommand}`,
-        'Updating 3b2c9a0..u94c2e1 — Fast-forward!',
+        'Updating 3b2c9a0..u94c2e1 - Fast-forward!',
         'Your local main now matches awesome-org/ui-kit 100%. Next: push to YOUR fork (origin)!',
       ];
       return s;
@@ -1510,11 +1510,11 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Foundations',
     title: 'What Are Git & GitHub? Origins, Ownership & Purpose',
     subtitle: 'Understand the difference between Git (local tool) and GitHub (cloud platform) before writing a single command',
-    storyTitle: 'First Things First — Git and GitHub Are Not the Same Thing',
+    storyTitle: 'First Things First - Git and GitHub Are Not the Same Thing',
     storyText:
       'People mix up **Git** and **GitHub** all the time. Think of **Git** as a CCTV camera and hard drive inside your room: it runs locally on your computer and tracks every change to your files with zero internet required. **GitHub** is the cloud vault where you upload copies of those snapshots to back them up or collaborate with a team. You can use Git completely offline without ever opening GitHub.',
     theorySummary:
-      '• **What is Git?** A free, open-source **Distributed Version Control System (DVCS)** that tracks every change to files across Stages 1–3 (Workspace, Staging Area, Local Repo).\n• **Why was Git created?** In April 2005, the Linux kernel community lost free access to their proprietary tool (BitKeeper). Existing tools (CVS, SVN) were slow and needed a central server online for every commit. **Linus Torvalds** built Git in ~2 weeks to be blazingly fast, 100% offline/distributed, branch-friendly, and cryptographically tamper-proof.\n• **Who owns Git?** Nobody privately owns Git — it is open-source (GNU GPL v2), stewarded by the open-source community (led by Junio Hamano) under the Software Freedom Conservancy.\n• **What is GitHub & who owns it?** Launched in **2008**, GitHub is a web hosting platform built *on top of* Git for Stage 4 (Remote Repos), Pull Requests, Issues, and CI/CD. **Microsoft acquired GitHub in 2018** ($7.5B) and owns it today. (GitLab and Bitbucket are alternative cloud hosts using the exact same Git engine.)',
+      '• **What is Git?** A free, open-source **Distributed Version Control System (DVCS)** that tracks every change to files across Stages 1–3 (Workspace, Staging Area, Local Repo).\n• **Why was Git created?** In April 2005, the Linux kernel community lost free access to their proprietary tool (BitKeeper). Existing tools (CVS, SVN) were slow and needed a central server online for every commit. **Linus Torvalds** built Git in ~2 weeks to be blazingly fast, 100% offline/distributed, branch-friendly, and cryptographically tamper-proof.\n• **Who owns Git?** Nobody privately owns Git - it is open-source (GNU GPL v2), stewarded by the open-source community (led by Junio Hamano) under the Software Freedom Conservancy.\n• **What is GitHub & who owns it?** Launched in **2008**, GitHub is a web hosting platform built *on top of* Git for Stage 4 (Remote Repos), Pull Requests, Issues, and CI/CD. **Microsoft acquired GitHub in 2018** ($7.5B) and owns it today. (GitLab and Bitbucket are alternative cloud hosts using the exact same Git engine.)',
     proTip:
       'Interview classic: "Git is the version control engine on your computer (created by Linus Torvalds in 2005, open-source); GitHub is a cloud hosting website for Git repositories (founded 2008, owned by Microsoft since 2018)."',
     initialState: {
@@ -1558,7 +1558,7 @@ const RAW_LESSONS: LessonStep[] = [
       {
         term: 'Git (2005 · Open-Source)',
         meaning: 'Distributed Version Control System created by Linus Torvalds under GNU GPL v2 (owned by no company).',
-        analogy: 'The CCTV camera and DVR hard drive inside your room — works completely offline.',
+        analogy: 'The CCTV camera and DVR hard drive inside your room - works completely offline.',
       },
       {
         term: 'GitHub (2008 · Microsoft)',
@@ -1568,7 +1568,7 @@ const RAW_LESSONS: LessonStep[] = [
       {
         term: 'DVCS (Distributed VCS)',
         meaning: 'Every developer downloads the entire project history locally instead of relying on a single central server.',
-        analogy: 'Every team member keeps a full backup DVR in their own room — zero single point of failure.',
+        analogy: 'Every team member keeps a full backup DVR in their own room - zero single point of failure.',
       },
       {
         term: 'BitKeeper & Linux (Why Created)',
@@ -1602,9 +1602,9 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Setup',
     title: 'Installing the Camera in Your Room',
     subtitle: 'Initialize a repo with git init and learn how Workspace, Staging Area, and Local Repo work together',
-    storyTitle: 'The CCTV Room Story — Chapter 1',
+    storyTitle: 'The CCTV Room Story - Chapter 1',
     storyText:
-      'Imagine you want to record everything happening inside your room so later you can check what changed, who did it, and exactly when. First, you install a CCTV camera on the wall. In Git, your project folder is your room, and running `git init` mounts the camera by creating a hidden `.git` folder — activating Git’s 3-area local ecosystem right inside that same folder.',
+      'Imagine you want to record everything happening inside your room so later you can check what changed, who did it, and exactly when. First, you install a CCTV camera on the wall. In Git, your project folder is your room, and running `git init` mounts the camera by creating a hidden `.git` folder - activating Git’s 3-area local ecosystem right inside that same folder.',
     theorySummary:
       'Until you run `git init`, your folder is just an ordinary directory. Running `git init` creates a hidden `.git/` directory inside it, turning that single project folder into a 3-area local ecosystem:\n• **Workspace (Working Directory):** The actual files on your desk that you open and edit in your code editor.\n• **Staging Area (Index):** A preparation checklist inside `.git/index` where you line up only the exact changes you want in your next snapshot (`git add`).\n• **Local Repo (`.git/` Database):** The permanent history vault (`objects/`, `refs/`, `HEAD`, `config`) that locks in your snapshots when you run `git commit`.\nAll three live inside the exact same project folder on your machine: you edit in **Workspace** → pick changes into **Staging Area** → save permanently into **Local Repo** (and later push to a **Remote Repo** like GitHub).',
     proTip:
@@ -1698,7 +1698,7 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Setup',
     title: 'Registering the Camera Operator',
     subtitle: 'Stamp every future recording with your name and email using git config',
-    storyTitle: 'The CCTV Room Story — Chapter 2',
+    storyTitle: 'The CCTV Room Story - Chapter 2',
     storyText:
       'A security tape is far more useful when it watermarks WHO entered the room. Before saving your first snapshot, you register your operator badge with `git config`. From then on, every commit automatically carries your signature.',
     theorySummary:
@@ -1798,7 +1798,7 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Daily Workflow',
     title: 'Checking the Room & Framing the Shot',
     subtitle: 'Inspect file states with git status and stage changes with git add',
-    storyTitle: 'The CCTV Room Story — Chapter 3',
+    storyTitle: 'The CCTV Room Story - Chapter 3',
     storyText:
       'Your desk has three items on it, yet you may only want to photograph two of them right now. Before pressing record, you place the chosen files onto a dedicated "Photo Desk" called the Staging Area (`git add`). Checking `git status` tells you what is still loose on your desk versus neatly framed.',
     theorySummary:
@@ -1899,7 +1899,7 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Daily Workflow',
     title: 'Saving a Permanent Snapshot',
     subtitle: 'Record staged files into Local Repo history with git commit',
-    storyTitle: 'The CCTV Room Story — Chapter 4',
+    storyTitle: 'The CCTV Room Story - Chapter 4',
     storyText:
       'Everything on the Photo Desk looks spotless. Now you press the shutter button (`git commit -m "..."`). The camera saves a permanent, tamper-proof timestamped snapshot onto your Local Repo hard drive with a unique serial number (commit hash) and your label.',
     theorySummary:
@@ -2005,11 +2005,11 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Inspect & Diff',
     title: 'Inspecting the Tape & Differences',
     subtitle: 'Compare exact line changes across stages with git diff and git show',
-    storyTitle: 'The CCTV Room Story — Chapter 5',
+    storyTitle: 'The CCTV Room Story - Chapter 5',
     storyText:
       'Before sealing another frame, you want to see exactly what moved on your desk since the last recording. `git diff` holds two frames side-by-side: red minus (`-`) lines show what was removed, and green plus (`+`) lines show what was added.',
     theorySummary:
-      '`git diff` by itself compares **Workspace vs. Staging Area**. Once you run `git add`, `git diff` becomes empty — so you add `--staged` (`git diff --staged`) to compare **Staging Area vs. Local Repo (HEAD)**. To inspect any single past commit in full detail, use `git show <commit-id>`.',
+      '`git diff` by itself compares **Workspace vs. Staging Area**. Once you run `git add`, `git diff` becomes empty - so you add `--staged` (`git diff --staged`) to compare **Staging Area vs. Local Repo (HEAD)**. To inspect any single past commit in full detail, use `git show <commit-id>`.',
     proTip:
       'Always run `git diff --staged` right before committing to catch stray `console.log()` lines or accidental secrets.',
     initialState: {
@@ -2095,7 +2095,7 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Inspect & Diff',
     title: 'Viewing the Security Log & Time Travel',
     subtitle: 'Browse commit timelines with git log and preview older snapshots',
-    storyTitle: 'The CCTV Room Story — Chapter 6',
+    storyTitle: 'The CCTV Room Story - Chapter 6',
     storyText:
       'Every evening your DVR keeps an indexed logbook of every snapshot ever saved. Running `git log --oneline` displays a clean timeline, and `git checkout <commit-id>` lets you temporarily rewind the monitor to watch an earlier moment without erasing today’s tape.',
     theorySummary:
@@ -2165,7 +2165,7 @@ const RAW_LESSONS: LessonStep[] = [
       {
         term: 'Detached HEAD',
         meaning: 'HEAD points directly to an older commit ID rather than a branch tip.',
-        analogy: 'Pausing the DVR on yesterday’s footage — great for viewing, not for recording new tape unless you start a branch.',
+        analogy: 'Pausing the DVR on yesterday’s footage - great for viewing, not for recording new tape unless you start a branch.',
       },
       {
         term: 'Commit Graph',
@@ -2197,11 +2197,11 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 7,
     category: 'Undo & Recovery',
-    title: 'Moving Backward — Unstaging & Discarding',
+    title: 'Moving Backward - Unstaging & Discarding',
     subtitle: 'Safely pull files back from Staging or wipe messy Workspace edits',
-    storyTitle: 'The CCTV Room Story — Chapter 7',
+    storyTitle: 'The CCTV Room Story - Chapter 7',
     storyText:
-      'Oops — you placed a half-written draft onto the Photo Desk by mistake, or spilled coffee over an unsaved experiment on your desk. `git restore --staged .` gently lifts items off the Photo Desk back onto your desk without losing your typing. `git restore .` resets your desk back to the last clean photograph.',
+      'Oops - you placed a half-written draft onto the Photo Desk by mistake, or spilled coffee over an unsaved experiment on your desk. `git restore --staged .` gently lifts items off the Photo Desk back onto your desk without losing your typing. `git restore .` resets your desk back to the last clean photograph.',
     theorySummary:
       'Modern Git introduced `git restore` to make backward commands crystal clear: `--staged` moves changes from **Staging → Workspace** (non-destructive). Without `--staged`, `git restore .` reverts **Workspace → Last Committed State** (erases unsaved edits). To remove brand-new untracked clutter files, preview first with `git clean -fd -n`, then run `git clean -fd`.',
     proTip:
@@ -2283,7 +2283,7 @@ const RAW_LESSONS: LessonStep[] = [
         flag: '--staged',
         syntax: 'git restore --staged app.js',
         purpose: 'Moves file backward from Staging Area to Workspace (replaces old `git reset HEAD`).',
-        bestPractice: '100% safe — never loses your typed code.',
+        bestPractice: '100% safe - never loses your typed code.',
       },
       {
         flag: '--source=HEAD~1',
@@ -2304,7 +2304,7 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Undo & Recovery',
     title: 'Rewinding Local Commits with git reset',
     subtitle: 'Understand the 3 modes of git reset: --soft, default (--mixed), and --hard',
-    storyTitle: 'The CCTV Room Story — Chapter 8',
+    storyTitle: 'The CCTV Room Story - Chapter 8',
     storyText:
       'What if you already pressed the shutter and saved a commit to your Local Repo, then realized you committed too early? `git reset HEAD~1` rewinds the DVR back by 1 snapshot. You choose how gentle or aggressive the rewind is: keep items on the Photo Desk (`--soft`), set them back on your desk (`default`), or sweep the desk completely clean (`--hard`).',
     theorySummary:
@@ -2397,7 +2397,7 @@ const RAW_LESSONS: LessonStep[] = [
       {
         flag: '--hard',
         syntax: 'git reset --hard HEAD~1',
-        purpose: 'Resets HEAD, Staging Area, and Workspace completely — erases uncommitted work.',
+        purpose: 'Resets HEAD, Staging Area, and Workspace completely - erases uncommitted work.',
         bestPractice: 'Use with caution only when you truly want to throw away changes.',
       },
     ],
@@ -2407,13 +2407,13 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Daily Workflow',
     title: 'File Operations & Camera Blind Spots',
     subtitle: 'Remove, rename, and ignore private files using git rm, git mv, and .gitignore',
-    storyTitle: 'The CCTV Room Story — Chapter 9',
+    storyTitle: 'The CCTV Room Story - Chapter 9',
     storyText:
-      'Some things in your room — like your personal diary, passwords (`.env`), or giant heavy Photoshop files (`*.psd`) — should NEVER be caught on camera. Creating a `.gitignore` file puts a privacy blind spot over matching filenames. Meanwhile, `git rm --cached` stops filming a secret file without deleting it from your desk.',
+      'Some things in your room - like your personal diary, passwords (`.env`), or giant heavy Photoshop files (`*.psd`) - should NEVER be caught on camera. Creating a `.gitignore` file puts a privacy blind spot over matching filenames. Meanwhile, `git rm --cached` stops filming a secret file without deleting it from your desk.',
     theorySummary:
       'Use `git rm file` to delete a file from both Workspace and Staging at once. Use `git rm --cached file` to untrack a file (like `.env`) while keeping it safely on your disk. Use `git mv old new` to rename and stage in one step. Put patterns like `*.psd`, `*.log`, `node_modules/`, and `.env` inside `.gitignore`.',
     proTip:
-      'If you already committed a `.env` file before adding it to `.gitignore`, `.gitignore` alone will not untrack it — run `git rm --cached .env` first!',
+      'If you already committed a `.env` file before adding it to `.gitignore`, `.gitignore` alone will not untrack it - run `git rm --cached .env` first!',
     initialState: {
       initialized: true,
       config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
@@ -2511,11 +2511,11 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 10,
     category: 'Stash & Clean',
-    title: 'The Temporary Drawer — Git Stash',
+    title: 'The Temporary Drawer - Git Stash',
     subtitle: 'Shelve unfinished edits cleanly with git stash and restore them later',
-    storyTitle: 'The CCTV Room Story — Chapter 10',
+    storyTitle: 'The CCTV Room Story - Chapter 10',
     storyText:
-      'You are halfway through reorganizing your desk when an urgent bug call arrives and you need a spotless room right now — without making a half-baked commit. `git stash` sweeps your messy work into a hidden side drawer. Once the urgent task finishes, `git stash pop` puts everything right back onto your desk.',
+      'You are halfway through reorganizing your desk when an urgent bug call arrives and you need a spotless room right now - without making a half-baked commit. `git stash` sweeps your messy work into a hidden side drawer. Once the urgent task finishes, `git stash pop` puts everything right back onto your desk.',
     theorySummary:
       'Stashing saves modified tracked files onto a temporary LIFO stack inside `.git/refs/stash` and resets your Workspace to a clean `HEAD`. Use `git stash list` to see saved drawers, `git stash apply` to restore while keeping a backup in the drawer, or `git stash pop` to restore and remove the drawer entry.',
     proTip:
@@ -2599,13 +2599,13 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 11,
     category: 'Branch & Merge',
-    title: 'Parallel Rooms — Branching in Git',
+    title: 'Parallel Rooms - Branching in Git',
     subtitle: 'Isolate new features safely with git branch and git checkout -b',
-    storyTitle: 'The CCTV Room Story — Chapter 11',
+    storyTitle: 'The CCTV Room Story - Chapter 11',
     storyText:
-      'Suppose you want to repaint your room bright blue, but you aren’t sure if you will like it. Instead of risking your neat `main` room, Git instantaneously clones your room into a parallel universe called a Branch (`feature/login`). Paint, experiment, and record snapshots freely — your original `main` room stays 100% untouched!',
+      'Suppose you want to repaint your room bright blue, but you aren’t sure if you will like it. Instead of risking your neat `main` room, Git instantaneously clones your room into a parallel universe called a Branch (`feature/login`). Paint, experiment, and record snapshots freely - your original `main` room stays 100% untouched!',
     theorySummary:
-      'A Git branch is simply a lightweight movable pointer to a commit — creating one takes milliseconds and almost zero disk space. `git checkout -b feature/login` (or modern `git switch -c feature/login`) creates a new branch and moves `HEAD` onto it immediately. Switch back anytime with `git checkout main`, and delete finished branches with `git branch -d`.',
+      'A Git branch is simply a lightweight movable pointer to a commit - creating one takes milliseconds and almost zero disk space. `git checkout -b feature/login` (or modern `git switch -c feature/login`) creates a new branch and moves `HEAD` onto it immediately. Switch back anytime with `git checkout main`, and delete finished branches with `git branch -d`.',
     proTip:
       'Keep `main` always deployable and clean. Create a short, descriptive branch (`feature/auth`, `fix/navbar`) for every task.',
     initialState: {
@@ -2695,15 +2695,15 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 12,
     category: 'Branch & Merge',
-    title: 'Combining Rooms — Merging & Cherry-Pick',
+    title: 'Combining Rooms - Merging & Cherry-Pick',
     subtitle: 'Integrate branches via Fast-Forward, 3-Way Merge, Rebase, or Cherry-Pick',
-    storyTitle: 'The CCTV Room Story — Chapter 12',
+    storyTitle: 'The CCTV Room Story - Chapter 12',
     storyText:
       'Your experimental room looks fantastic! Now you want to bring those upgrades back into your `main` room. If nobody touched `main` while you worked, Git simply slides `main` forward (**Fast-Forward Merge**). If `main` also changed meanwhile, Git weaves both rooms together into a **3-Way Merge Commit**. Want only one specific furniture piece? Use `git cherry-pick`!',
     theorySummary:
       'Always switch to the receiving branch (`git checkout main`) first, then run `git merge feature/login`. Git chooses **Fast-Forward** when history is linear, or creates a **3-Way Merge Commit** with two parents when branches diverged. For a straight linear timeline, teams also use `git rebase -i`, and for picking a single commit across branches, `git cherry-pick <id>`. Visit the **Branch Lab** tab above to experiment interactively with every merge type!',
     proTip:
-      'Never rebase commits that have already been pushed to a shared team branch — rebase rewrites commit hashes!',
+      'Never rebase commits that have already been pushed to a shared team branch - rebase rewrites commit hashes!',
     initialState: {
       initialized: true,
       config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
@@ -2796,15 +2796,15 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 13,
     category: 'Remote & SSH',
-    title: 'Cloud CCTV Backup — Remote & Push',
+    title: 'Cloud CCTV Backup - Remote & Push',
     subtitle: 'Connect your Local Repo to GitHub, set up SSH keys, and push commits',
-    storyTitle: 'The CCTV Room Story — Chapter 13',
+    storyTitle: 'The CCTV Room Story - Chapter 13',
     storyText:
-      'What if your laptop breaks or your room’s local DVR hard drive fails? You connect your local recorder to a secure Cloud Backup Vault — **GitHub (Remote Repo)**. You give the vault a nickname (`origin`), generate a cryptographic **SSH Key** for passwordless entry, and upload your snapshots with `git push -u origin main`.',
+      'What if your laptop breaks or your room’s local DVR hard drive fails? You connect your local recorder to a secure Cloud Backup Vault - **GitHub (Remote Repo)**. You give the vault a nickname (`origin`), generate a cryptographic **SSH Key** for passwordless entry, and upload your snapshots with `git push -u origin main`.',
     theorySummary:
       '`git remote add origin <url>` saves a bookmark named `origin` pointing to your GitHub URL. Instead of typing credentials repeatedly, generate an SSH keypair with `ssh-keygen -t rsa -b 4096 -C "email"`, add it to `ssh-agent`, and paste `id_rsa.pub` into GitHub. Finally, `git push -u origin main` uploads commits from **Local Repo → Remote Repo**.',
     proTip:
-      'The `-u` (`--set-upstream`) flag links your local `main` to `origin/main` once — after that, you only need to type short `git push` and `git pull`!',
+      'The `-u` (`--set-upstream`) flag links your local `main` to `origin/main` once - after that, you only need to type short `git push` and `git pull`!',
     initialState: {
       initialized: true,
       config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
@@ -2885,9 +2885,9 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 14,
     category: 'Remote & SSH',
-    title: 'Syncing with Teammates — Clone, Fetch & Pull',
+    title: 'Syncing with Teammates - Clone, Fetch & Pull',
     subtitle: 'Understand the crucial difference between git fetch and git pull',
-    storyTitle: 'The CCTV Room Story — Chapter 14',
+    storyTitle: 'The CCTV Room Story - Chapter 14',
     storyText:
       'Now a teammate uploads a new fix to the GitHub Cloud Vault! How do you bring it down? `git clone` copies an entire vault onto a brand-new laptop. `git fetch` downloads new cloud footage into your **Local Repo** only so you can inspect it safely first. `git pull` does both **Fetch + Merge**, bringing changes all the way into your **Workspace** immediately.',
     theorySummary:
@@ -2981,9 +2981,9 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 15,
     category: 'Undo & Recovery',
-    title: 'Safe Undo on Shared History — git revert',
+    title: 'Safe Undo on Shared History - git revert',
     subtitle: 'Reverse a pushed commit cleanly without breaking teammates’ repositories',
-    storyTitle: 'The CCTV Room Story — Chapter 15',
+    storyTitle: 'The CCTV Room Story - Chapter 15',
     storyText:
       'You already uploaded a buggy snapshot to the shared GitHub Cloud Vault, and three teammates have downloaded it. If you secretly erase that tape using `git reset` and force-push, everyone else’s timeline shatters! Instead, `git revert HEAD` records a brand-new **corrective snapshot** that neatly cancels the bug while keeping the honest audit trail intact.',
     theorySummary:
@@ -3073,13 +3073,13 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Team Collaboration',
     title: 'Team Feature Workflow & When to git pull',
     subtitle: 'Best-practice daily cycle for teammates: pull main first, branch cleanly, commit small, and push feature branches',
-    storyTitle: 'The CCTV Room Story — Chapter 16 (Team Studio Rules)',
+    storyTitle: 'The CCTV Room Story - Chapter 16 (Team Studio Rules)',
     storyText:
       'Now you are building an app with teammates Sara and Alex. If everyone edits directly inside the `main` showroom at once, people constantly overwrite each other’s work! Instead, every teammate follows a golden rhythm: **pull the latest `main` first**, spin off a private feature room (`git switch -c feat/search`), build in small clean commits, and push only your feature branch.',
     theorySummary:
       '• **The Golden Feature-Branch Rule**: Treat `main` as sacred, always-deployable code. Never commit directly to `main` on a team project.\n• **The 4 Exact Moments to Run `git pull`**:\n  1. **Before starting any new feature**: `git switch main` → `git pull origin main` → `git switch -c feat/my-task` (prevents starting on stale code).\n  2. **Mid-feature on long tasks (daily sync)**: `git fetch origin` then `git merge origin/main` (or `git rebase origin/main`) so you catch tiny merge conflicts early instead of a giant conflict days later.\n  3. **Right before opening a Pull Request**: Sync with latest `main` and re-run tests so reviewers see a green, conflict-free diff.\n  4. **Right after your PR is merged**: `git switch main` → `git pull` → `git branch -d feat/my-task` to clean up.\n• **Small, Atomic Commits**: Keep each feature branch focused on **one** ticket/task (under ~300 lines when possible) so teammates can review it in minutes.',
     proTip:
-      'Run `git pull --rebase` when pulling onto a clean branch — it replays any unpushed local commits neatly on top of your teammates’ changes without cluttering the log with automatic merge bubbles.',
+      'Run `git pull --rebase` when pulling onto a clean branch - it replays any unpushed local commits neatly on top of your teammates’ changes without cluttering the log with automatic merge bubbles.',
     initialState: {
       initialized: true,
       config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
@@ -3183,13 +3183,13 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Team Collaboration',
     title: 'Pull Request (PR) Flow & Code Review',
     subtitle: 'Open a Pull Request, address reviewer feedback with follow-up commits, squash-merge, and delete stale branches',
-    storyTitle: 'The CCTV Room Story — Chapter 17 (The Inspection Gate)',
+    storyTitle: 'The CCTV Room Story - Chapter 17 (The Inspection Gate)',
     storyText:
-      'Your feature room (`feat/search`) is uploaded to the Cloud Vault, yet it has NOT entered `main` yet! On GitHub, you open a **Pull Request (PR)** — an official invitation asking teammates: *"Please inspect my diff and pull `feat/search` into `main`."* Reviewers leave line-by-line suggestions, automated tests run, and every new `git push` to your branch updates the exact same PR automatically!',
+      'Your feature room (`feat/search`) is uploaded to the Cloud Vault, yet it has NOT entered `main` yet! On GitHub, you open a **Pull Request (PR)** - an official invitation asking teammates: *"Please inspect my diff and pull `feat/search` into `main`."* Reviewers leave line-by-line suggestions, automated tests run, and every new `git push` to your branch updates the exact same PR automatically!',
     theorySummary:
       '• **What is a Pull Request (PR)?** A GitHub collaboration gate (called a *Merge Request* on GitLab) showing the exact diff between your **head branch** (`feat/search`) and the **base branch** (`main`), paired with discussion threads, approvals, and CI checks.\n• **How PR Feedback Works (Zero Need to Open a New PR!)**: When a reviewer requests a change, stay on your same branch (`feat/search`), make the fix, `git commit`, and run `git push`. GitHub automatically appends the new commit to the open PR!\n• **3 Merge Button Options on GitHub**:\n  1. **Squash and Merge** *(Most popular for teams)*: Combines messy WIP commits (`"wip"`, `"fix typo"`) into **1 clean commit** on `main`.\n  2. **Create a Merge Commit**: Preserves every individual branch commit plus a merge bubble.\n  3. **Rebase and Merge**: Replays every individual commit linearly onto `main`.\n• **Post-Merge Cleanup**: Delete the merged branch on GitHub and locally (`git branch -d feat/search`) so branches never pile up.',
     proTip:
-      'Write a great PR description with **What changed**, **Why**, and a **Screenshot / How to test** checklist — reviewers approve clear PRs 3× faster!',
+      'Write a great PR description with **What changed**, **Why**, and a **Screenshot / How to test** checklist - reviewers approve clear PRs 3× faster!',
     initialState: {
       initialized: true,
       config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
@@ -3261,7 +3261,7 @@ const RAW_LESSONS: LessonStep[] = [
       {
         term: 'Draft PR',
         meaning: 'A work-in-progress Pull Request marked not ready for merge yet, used to get early design feedback or trigger CI.',
-        analogy: 'Putting a "Feedback Welcome — Still Painting" sign on your inspection request.',
+        analogy: 'Putting a "Feedback Welcome - Still Painting" sign on your inspection request.',
       },
       {
         term: 'Squash & Merge',
@@ -3298,13 +3298,13 @@ const RAW_LESSONS: LessonStep[] = [
   {
     stepNumber: 19,
     category: 'Open Source',
-    title: 'Open-Source Contribution — Fork, Branch & PR',
+    title: 'Open-Source Contribution - Fork, Branch & PR',
     subtitle: 'Contribute to public repos you don’t own using Fork → Clone → Add upstream → Feature Branch → Cross-Repo PR',
-    storyTitle: 'The CCTV Room Story — Chapter 18 (Contributing to Open Source)',
+    storyTitle: 'The CCTV Room Story - Chapter 18 (Contributing to Open Source)',
     storyText:
       'You discover an accessibility bug in a popular open-source library (`awesome-org/ui-kit`). Because you are not a maintainer, GitHub blocks you from running `git push` directly to `awesome-org/ui-kit`. Instead, you click **Fork** on GitHub to create your own personal cloud copy (`mamun/ui-kit`), clone YOUR fork (`origin`), link the original project as `upstream`, create a fix branch, push to your fork, and open a **Cross-Repo Pull Request** back to `awesome-org/ui-kit`!',
     theorySummary:
-      '• **Why Fork Instead of Direct Clone?** A direct clone of someone else’s public repo gives you read-only access (you’ll get `Permission denied` on push). **Forking** makes a server-side copy under *your* GitHub account where you have full push permissions.\n• **The 2 Remotes Every Open-Source Contributor Sets**:\n  - **`origin`** → YOUR fork (`github.com/your-name/repo.git`) — where you **push** your branches.\n  - **`upstream`** → THE ORIGINAL repo (`github.com/original-org/repo.git`) — where you **fetch/pull** official updates.\n• **Open-Source Best Practices**:\n  1. Read `CONTRIBUTING.md` and check open Issues first (ask before building huge features).\n  2. **Never commit to `main` on your fork!** Always create a dedicated branch (`git switch -c fix/button-aria`) so your `main` stays a pure mirror of `upstream/main`.\n  3. Run tests/lint locally, push to `origin`, and open a PR from `your-name:fix/button-aria` → `awesome-org:main`.',
+      '• **Why Fork Instead of Direct Clone?** A direct clone of someone else’s public repo gives you read-only access (you’ll get `Permission denied` on push). **Forking** makes a server-side copy under *your* GitHub account where you have full push permissions.\n• **The 2 Remotes Every Open-Source Contributor Sets**:\n  - **`origin`** → YOUR fork (`github.com/your-name/repo.git`) - where you **push** your branches.\n  - **`upstream`** → THE ORIGINAL repo (`github.com/original-org/repo.git`) - where you **fetch/pull** official updates.\n• **Open-Source Best Practices**:\n  1. Read `CONTRIBUTING.md` and check open Issues first (ask before building huge features).\n  2. **Never commit to `main` on your fork!** Always create a dedicated branch (`git switch -c fix/button-aria`) so your `main` stays a pure mirror of `upstream/main`.\n  3. Run tests/lint locally, push to `origin`, and open a PR from `your-name:fix/button-aria` → `awesome-org:main`.',
     proTip:
       'Keep your fork’s `main` branch 100% untouched (never make direct commits on it). That way, syncing with `upstream/main` later is ALWAYS a painless fast-forward with zero conflicts!',
     initialState: {
@@ -3404,13 +3404,13 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Open Source',
     title: 'Keeping Your Fork Updated with upstream',
     subtitle: 'Sync your stale fork with the original repository using fetch upstream → merge → push origin (or Sync Fork)',
-    storyTitle: 'The CCTV Room Story — Chapter 19 (Finale: Syncing Your Fork)',
+    storyTitle: 'The CCTV Room Story - Chapter 19 (Finale: Syncing Your Fork)',
     storyText:
-      'Two weeks after your first open-source contribution, the maintainers of `awesome-org/ui-kit` merged 20 new commits. Your GitHub fork (`mamun/ui-kit`) does **NOT** update automatically — it is now behind! Before starting your next contribution, you pull fresh blueprints from `upstream`, fast-forward your local `main`, and push them up to `origin` so both your PC and your fork are 100% current.',
+      'Two weeks after your first open-source contribution, the maintainers of `awesome-org/ui-kit` merged 20 new commits. Your GitHub fork (`mamun/ui-kit`) does **NOT** update automatically - it is now behind! Before starting your next contribution, you pull fresh blueprints from `upstream`, fast-forward your local `main`, and push them up to `origin` so both your PC and your fork are 100% current.',
     theorySummary:
-      '• **Why Forks Fall Behind**: A GitHub Fork is a snapshot taken at the moment you clicked Fork. New commits added to `awesome-org/ui-kit` never auto-sync into your fork unless you trigger a sync.\n• **The 3-Step CLI Sync Recipe** (from your `main` branch):\n  1. `git fetch upstream` — Downloads all new commits from the original project into `upstream/main`.\n  2. `git merge upstream/main` — Fast-forwards your local `main` branch (and Workspace) cleanly with zero conflicts because you kept `main` clean!\n  3. `git push origin main` — Pushes those fresh commits up to YOUR GitHub fork so your cloud copy matches `upstream` too.\n• **What if you already have an open feature branch?** Sync `main` first, then run `git switch fix/my-pr` and `git rebase main` (or `git merge main`), followed by `git push --force-with-lease` if you rebased.\n• **GitHub Web Shortcut**: You can also click **"Sync fork → Update branch"** on your fork’s GitHub page, then simply run `git pull origin main` on your laptop!',
+      '• **Why Forks Fall Behind**: A GitHub Fork is a snapshot taken at the moment you clicked Fork. New commits added to `awesome-org/ui-kit` never auto-sync into your fork unless you trigger a sync.\n• **The 3-Step CLI Sync Recipe** (from your `main` branch):\n  1. `git fetch upstream` - Downloads all new commits from the original project into `upstream/main`.\n  2. `git merge upstream/main` - Fast-forwards your local `main` branch (and Workspace) cleanly with zero conflicts because you kept `main` clean!\n  3. `git push origin main` - Pushes those fresh commits up to YOUR GitHub fork so your cloud copy matches `upstream` too.\n• **What if you already have an open feature branch?** Sync `main` first, then run `git switch fix/my-pr` and `git rebase main` (or `git merge main`), followed by `git push --force-with-lease` if you rebased.\n• **GitHub Web Shortcut**: You can also click **"Sync fork → Update branch"** on your fork’s GitHub page, then simply run `git pull origin main` on your laptop!',
     proTip:
-      'Congratulations on reaching 100%! You now master Git from `git init` all the way to Team Pull Requests and Open-Source Fork Syncing. Use the Branch Lab, Flow Matrix, and Cheat Sheet anytime — or click **Download Offline HTML** to keep this complete 20-step studio offline forever.',
+      'Congratulations on reaching 100%! You now master Git from `git init` all the way to Team Pull Requests and Open-Source Fork Syncing. Use the Branch Lab, Flow Matrix, and Cheat Sheet anytime - or click **Download Offline HTML** to keep this complete 20-step studio offline forever.',
     initialState: {
       initialized: true,
       config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },

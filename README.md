@@ -21,9 +21,4 @@ npm run build
 npm run preview
 ```
 
-## Deploy to GitHub Pages
-This repository includes `.github/workflows/deploy.yml` and relative asset paths (`base: './'`) out of the box:
-1. Push this repository to GitHub on the `main` branch.
-2. Open **Settings → Pages** in your GitHub repository.
-3. Under **Build and deployment → Source**, select **GitHub Actions**.
-4. Your site will build and deploy automatically on every push to `main`.
+

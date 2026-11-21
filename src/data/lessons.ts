@@ -1150,6 +1150,355 @@ export function runCommandEffect(prev: RepoState, effect: CommandEffect, rawComm
       return s;
     }
 
+    case 'push_feature': {
+      const branch = effect.arg || s.currentBranch;
+      s.remoteConnected = true;
+      const latest = s.localCommits[0];
+      if (latest && !s.remoteCommits.some((c) => c.id === latest.id)) {
+        s.remoteCommits.unshift({
+          ...latest,
+          branch: `origin/${branch}`,
+        });
+      }
+      s.activeFlow = {
+        from: 'local',
+        to: 'remote',
+        direction: 'forward',
+        command: rawCommand,
+        label: `Pushed branch ${branch}`,
+      };
+      s.highlightStage = 'remote';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        `* [new branch] ${branch} -> origin/${branch}`,
+        'GitHub link ready: Open a Pull Request into main without touching main directly!',
+      ];
+      return s;
+    }
+
+    case 'open_pr': {
+      const branch = effect.arg || 'feat/search';
+      s.remoteConnected = true;
+      if (!s.remoteCommits.some((c) => c.id === 'f6c21a4')) {
+        s.remoteCommits.unshift({
+          id: 'f6c21a4',
+          message: 'PR #42 Open: Add live search bar',
+          branch: `origin/${branch}`,
+          files: ['search.tsx'],
+          author: s.config.name || 'Mamun',
+        });
+      }
+      s.activeFlow = {
+        from: 'local',
+        to: 'remote',
+        direction: 'forward',
+        command: rawCommand,
+        label: `PR #42 opened (${branch} -> main)`,
+      };
+      s.highlightStage = 'remote';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        `Opened Pull Request #42 on GitHub: ${branch} -> main`,
+        'CI checks passed! Reviewer Sara left 1 comment: "Please debounce search input by 250ms."',
+      ];
+      return s;
+    }
+
+    case 'pr_review_fix': {
+      const fixId = 'a9e4b12';
+      if (!s.localCommits.some((c) => c.id === fixId)) {
+        s.localCommits.unshift({
+          id: fixId,
+          message: 'Address PR review: debounce input',
+          branch: s.currentBranch,
+          files: ['search.tsx'],
+          author: s.config.name || 'Mamun',
+        });
+      }
+      s.workspace = s.workspace.map((f) =>
+        f.name === 'search.tsx'
+          ? { ...f, status: 'clean', detail: 'Debounced 250ms (ready to push)' }
+          : f
+      );
+      s.staging = [];
+      s.activeFlow = {
+        from: 'staging',
+        to: 'local',
+        direction: 'forward',
+        command: rawCommand,
+        label: `Review fix committed (${fixId})`,
+      };
+      s.highlightStage = 'local';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        `[${s.currentBranch} ${fixId}] Address PR review: debounce input`,
+        'Now run `git push` — your existing Pull Request #42 will update automatically!',
+      ];
+      return s;
+    }
+
+    case 'push_pr_update': {
+      const fix = s.localCommits.find((c) => c.id === 'a9e4b12') || s.localCommits[0];
+      if (fix && !s.remoteCommits.some((c) => c.id === fix.id)) {
+        s.remoteCommits.unshift({
+          ...fix,
+          branch: `origin/${s.currentBranch}`,
+        });
+      }
+      s.activeFlow = {
+        from: 'local',
+        to: 'remote',
+        direction: 'forward',
+        command: rawCommand,
+        label: 'PR #42 auto-updated!',
+      };
+      s.highlightStage = 'remote';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        `Updated origin/${s.currentBranch} -> Pull Request #42 automatically refreshed!`,
+        'Reviewer Sara clicked "Approve" — ready to Squash & Merge into main.',
+      ];
+      return s;
+    }
+
+    case 'pr_merge_cleanup': {
+      const mergedId = 'm42e8f1';
+      if (!s.remoteCommits.some((c) => c.id === mergedId)) {
+        s.remoteCommits.unshift({
+          id: mergedId,
+          message: 'Add live search bar (#42)',
+          branch: 'origin/main',
+          files: ['search.tsx'],
+          author: 'Mamun',
+          isMerge: true,
+        });
+      }
+      if (!s.localCommits.some((c) => c.id === mergedId)) {
+        s.localCommits.unshift({
+          id: mergedId,
+          message: 'Add live search bar (#42)',
+          branch: 'main',
+          files: ['search.tsx'],
+          author: 'Mamun',
+          isMerge: true,
+        });
+      }
+      s.currentBranch = 'main';
+      s.branches = ['main'];
+      s.activeFlow = {
+        from: 'remote',
+        to: 'local',
+        direction: 'backward',
+        command: rawCommand,
+        label: 'PR #42 merged & branch cleaned',
+      };
+      s.highlightStage = 'local';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        'Squashed & merged PR #42 into origin/main, deleted feat/search, and synced local main!',
+      ];
+      return s;
+    }
+
+    case 'fork_clone': {
+      s.initialized = true;
+      s.remoteConnected = true;
+      s.remoteUrl = 'git@github.com:mamun/ui-kit.git';
+      s.localCommits = cloneState(s).remoteCommits.map((c) => ({ ...c, branch: 'main' }));
+      s.workspace = [
+        { name: 'Button.tsx', status: 'clean', detail: 'Cloned from YOUR fork' },
+        { name: 'README.md', status: 'clean', detail: 'Cloned from YOUR fork' },
+        { name: 'CONTRIBUTING.md', status: 'clean', detail: 'Read project guidelines!' },
+      ];
+      s.activeFlow = {
+        from: 'remote',
+        to: 'workspace',
+        direction: 'backward',
+        command: rawCommand,
+        label: 'Cloned YOUR fork (origin)',
+      };
+      s.highlightStage = 'workspace';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        "Cloning into 'ui-kit'... origin -> git@github.com:mamun/ui-kit.git (YOUR fork)",
+        'Tip: Always read CONTRIBUTING.md and link the original repo as "upstream" next.',
+      ];
+      return s;
+    }
+
+    case 'upstream_add': {
+      s.remoteConnected = true;
+      s.activeFlow = {
+        from: 'local',
+        to: 'remote',
+        direction: 'inspect',
+        command: rawCommand,
+        label: 'Linked original repo as upstream',
+      };
+      s.highlightStage = 'remote';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        'origin   -> git@github.com:mamun/ui-kit.git (YOUR fork — push here)',
+        'upstream -> git@github.com:awesome-org/ui-kit.git (ORIGINAL repo — pull updates here)',
+      ];
+      return s;
+    }
+
+    case 'push_fork_pr': {
+      const branch = effect.arg || s.currentBranch;
+      const fixId = 'c81a3f2';
+      if (!s.localCommits.some((c) => c.id === fixId)) {
+        s.localCommits.unshift({
+          id: fixId,
+          message: 'fix: add aria-label to icon Button',
+          branch,
+          files: ['Button.tsx'],
+          author: s.config.name || 'Mamun',
+        });
+      }
+      if (!s.remoteCommits.some((c) => c.id === fixId)) {
+        s.remoteCommits.unshift({
+          id: fixId,
+          message: 'fix: add aria-label to icon Button',
+          branch: `origin/${branch}`,
+          files: ['Button.tsx'],
+          author: s.config.name || 'Mamun',
+        });
+      }
+      s.activeFlow = {
+        from: 'local',
+        to: 'remote',
+        direction: 'forward',
+        command: rawCommand,
+        label: `Pushed ${branch} to YOUR fork`,
+      };
+      s.highlightStage = 'remote';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        `Pushed ${branch} to origin (mamun/ui-kit).`,
+        'On GitHub click "Compare & pull request": mamun:fix/button-aria -> awesome-org:main!',
+      ];
+      return s;
+    }
+
+    case 'remote_list_upstream': {
+      s.highlightStage = 'remote';
+      s.activeFlow = {
+        from: 'local',
+        to: 'remote',
+        direction: 'inspect',
+        command: rawCommand,
+        label: 'Inspecting origin & upstream',
+      };
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        'origin   git@github.com:mamun/ui-kit.git (fetch/push)  [YOUR FORK]',
+        'upstream git@github.com:awesome-org/ui-kit.git (fetch) [ORIGINAL REPO]',
+      ];
+      return s;
+    }
+
+    case 'upstream_fetch': {
+      const newUpstreamCommits = [
+        {
+          id: 'u94c2e1',
+          message: 'feat: add Tooltip component (upstream)',
+          branch: 'upstream/main',
+          files: ['Tooltip.tsx'],
+          author: 'Maintainer',
+        },
+        {
+          id: 'u72b10a',
+          message: 'fix: keyboard focus ring (upstream)',
+          branch: 'upstream/main',
+          files: ['Button.tsx'],
+          author: 'Maintainer',
+        },
+      ];
+      newUpstreamCommits.reverse().forEach((c) => {
+        if (!s.localCommits.some((lc) => lc.id === c.id)) {
+          s.localCommits.unshift(c);
+        }
+      });
+      s.activeFlow = {
+        from: 'remote',
+        to: 'local',
+        direction: 'backward',
+        command: rawCommand,
+        label: 'Fetched upstream/main -> Local',
+      };
+      s.highlightStage = 'local';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        'From github.com:awesome-org/ui-kit',
+        '   3b2c9a0..u94c2e1  main -> upstream/main (2 new commits downloaded safely)',
+      ];
+      return s;
+    }
+
+    case 'upstream_merge': {
+      const ensure = [
+        {
+          id: 'u72b10a',
+          message: 'fix: keyboard focus ring (upstream)',
+          branch: 'main',
+          files: ['Button.tsx'],
+          author: 'Maintainer',
+        },
+        {
+          id: 'u94c2e1',
+          message: 'feat: add Tooltip component (upstream)',
+          branch: 'main',
+          files: ['Tooltip.tsx'],
+          author: 'Maintainer',
+        },
+      ];
+      ensure.forEach((c) => {
+        if (!s.localCommits.some((lc) => lc.id === c.id)) {
+          s.localCommits.unshift(c);
+        }
+      });
+      s.localCommits = s.localCommits.map((c) => ({ ...c, branch: 'main' }));
+      if (!s.workspace.some((f) => f.name === 'Tooltip.tsx')) {
+        s.workspace.push({ name: 'Tooltip.tsx', status: 'clean', detail: 'Synced from upstream' });
+      }
+      s.activeFlow = {
+        from: 'local',
+        to: 'workspace',
+        direction: 'backward',
+        command: rawCommand,
+        label: 'Fast-forwarded local main',
+      };
+      s.highlightStage = 'workspace';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        'Updating 3b2c9a0..u94c2e1 — Fast-forward!',
+        'Your local main now matches awesome-org/ui-kit 100%. Next: push to YOUR fork (origin)!',
+      ];
+      return s;
+    }
+
+    case 'upstream_push_origin': {
+      s.remoteCommits = cloneState(s).localCommits.map((c) => ({
+        ...c,
+        branch: 'origin/main',
+      }));
+      s.activeFlow = {
+        from: 'local',
+        to: 'remote',
+        direction: 'forward',
+        command: rawCommand,
+        label: 'Synced YOUR GitHub fork!',
+      };
+      s.highlightStage = 'remote';
+      s.terminalLines = [
+        `$ ${rawCommand}`,
+        'To git@github.com:mamun/ui-kit.git -> 3b2c9a0..u94c2e1  main -> main',
+        'Both your laptop AND your GitHub fork are now 100% up to date with upstream!',
+      ];
+      return s;
+    }
+
     default:
       return s;
   }
@@ -1161,9 +1510,9 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Foundations',
     title: 'What Are Git & GitHub? Origins, Ownership & Purpose',
     subtitle: 'Understand the difference between Git (local tool) and GitHub (cloud platform) before writing a single command',
-    storyTitle: 'The CCTV Room Story — Prologue (Camera vs. Cloud Vault)',
+    storyTitle: 'First Things First — Git and GitHub Are Not the Same Thing',
     storyText:
-      'Before installing a security camera in your room, it helps to separate two things people constantly confuse: **Git** is the actual CCTV camera & local DVR hard drive sitting inside your room (free, open-source software running offline on your laptop). **GitHub** is the off-site Cloud Vault service where you back up footage and share it with your team. You can use Git completely offline without GitHub — just like a camera records to its local drive without Wi-Fi!',
+      'People mix up **Git** and **GitHub** all the time. Think of **Git** as a CCTV camera and hard drive inside your room: it runs locally on your computer and tracks every change to your files with zero internet required. **GitHub** is the cloud vault where you upload copies of those snapshots to back them up or collaborate with a team. You can use Git completely offline without ever opening GitHub.',
     theorySummary:
       '• **What is Git?** A free, open-source **Distributed Version Control System (DVCS)** that tracks every change to files across Stages 1–3 (Workspace, Staging Area, Local Repo).\n• **Why was Git created?** In April 2005, the Linux kernel community lost free access to their proprietary tool (BitKeeper). Existing tools (CVS, SVN) were slow and needed a central server online for every commit. **Linus Torvalds** built Git in ~2 weeks to be blazingly fast, 100% offline/distributed, branch-friendly, and cryptographically tamper-proof.\n• **Who owns Git?** Nobody privately owns Git — it is open-source (GNU GPL v2), stewarded by the open-source community (led by Junio Hamano) under the Software Freedom Conservancy.\n• **What is GitHub & who owns it?** Launched in **2008**, GitHub is a web hosting platform built *on top of* Git for Stage 4 (Remote Repos), Pull Requests, Issues, and CI/CD. **Microsoft acquired GitHub in 2018** ($7.5B) and owns it today. (GitLab and Bitbucket are alternative cloud hosts using the exact same Git engine.)',
     proTip:
@@ -1192,34 +1541,10 @@ const RAW_LESSONS: LessonStep[] = [
       currentBranch: 'main',
       headDetachedAt: null,
       activeFlow: null,
-      terminalLines: ['$ # Click the comparison buttons above to see which stages belong to Git vs. GitHub!'],
+      terminalLines: ['$ # Click "git --version" above to verify Git is installed on your machine.'],
       highlightStage: null,
     },
     commands: [
-      {
-        id: 's0-git',
-        command: 'Explore: Git (Local Engine)',
-        label: 'Stages 1–3 · Linus (2005) · Open-Source',
-        kind: 'inspect',
-        routeLabel: 'Local Computer',
-        effect: { type: 'intro_git' },
-      },
-      {
-        id: 's0-github',
-        command: 'Explore: GitHub (Cloud Host)',
-        label: 'Stage 4 · Microsoft (2018) · Cloud',
-        kind: 'inspect',
-        routeLabel: 'Cloud Platform',
-        effect: { type: 'intro_github' },
-      },
-      {
-        id: 's0-sync',
-        command: 'Explore: Git ↔ GitHub Sync',
-        label: 'How local & cloud connect',
-        kind: 'do',
-        routeLabel: 'Local → Remote',
-        effect: { type: 'intro_sync' },
-      },
       {
         id: 's0-ver',
         command: 'git --version',
@@ -1276,12 +1601,12 @@ const RAW_LESSONS: LessonStep[] = [
     stepNumber: 2,
     category: 'Setup',
     title: 'Installing the Camera in Your Room',
-    subtitle: 'Initialize a repository with git init and inspect the hidden .git folder',
+    subtitle: 'Initialize a repo with git init and learn how Workspace, Staging Area, and Local Repo work together',
     storyTitle: 'The CCTV Room Story — Chapter 1',
     storyText:
-      'Imagine you want to record everything happening inside your room so later you can check what changed, who did it, and exactly when. First, you install a CCTV camera on the wall. In Git, your project folder is your room, and running `git init` mounts the camera by creating a hidden `.git` folder.',
+      'Imagine you want to record everything happening inside your room so later you can check what changed, who did it, and exactly when. First, you install a CCTV camera on the wall. In Git, your project folder is your room, and running `git init` mounts the camera by creating a hidden `.git` folder — activating Git’s 3-area local ecosystem right inside that same folder.',
     theorySummary:
-      'Until you run `git init`, your folder is just an ordinary directory. Running `git init` creates a hidden `.git/` directory inside it. That `.git/` directory IS your Local Repository — it stores every snapshot (`objects/`), branch pointer (`refs/`), the current position (`HEAD`), and repository settings (`config`).',
+      'Until you run `git init`, your folder is just an ordinary directory. Running `git init` creates a hidden `.git/` directory inside it, turning that single project folder into a 3-area local ecosystem:\n• **Workspace (Working Directory):** The actual files on your desk that you open and edit in your code editor.\n• **Staging Area (Index):** A preparation checklist inside `.git/index` where you line up only the exact changes you want in your next snapshot (`git add`).\n• **Local Repo (`.git/` Database):** The permanent history vault (`objects/`, `refs/`, `HEAD`, `config`) that locks in your snapshots when you run `git commit`.\nAll three live inside the exact same project folder on your machine: you edit in **Workspace** → pick changes into **Staging Area** → save permanently into **Local Repo** (and later push to a **Remote Repo** like GitHub).',
     proTip:
       'Never manually delete or edit files inside `.git/objects/`. If you ever want to stop tracking a folder completely, removing `.git/` turns it back into a plain folder without deleting your source code.',
     initialState: {
@@ -1338,9 +1663,14 @@ const RAW_LESSONS: LessonStep[] = [
         analogy: 'Your physical room and desk where work actually happens.',
       },
       {
-        term: '.git Directory',
-        meaning: 'The hidden database folder storing snapshots, branches, config, and commit history.',
-        analogy: 'The CCTV camera and its internal DVR hard drive.',
+        term: 'Staging Area (Index)',
+        meaning: 'The middle preparation zone (`.git/index`) where you pick which edits go into your next commit.',
+        analogy: 'The photo desk where you arrange only the items you want in the next picture.',
+      },
+      {
+        term: 'Local Repo (.git Directory)',
+        meaning: 'The hidden database folder storing committed snapshots (`objects/`), branches (`refs/`), `HEAD`, and `config`.',
+        analogy: 'The CCTV camera and its internal DVR hard drive locking footage permanently.',
       },
       {
         term: 'Repository (Repo)',
@@ -2653,13 +2983,13 @@ const RAW_LESSONS: LessonStep[] = [
     category: 'Undo & Recovery',
     title: 'Safe Undo on Shared History — git revert',
     subtitle: 'Reverse a pushed commit cleanly without breaking teammates’ repositories',
-    storyTitle: 'The CCTV Room Story — Chapter 15 (Finale)',
+    storyTitle: 'The CCTV Room Story — Chapter 15',
     storyText:
       'You already uploaded a buggy snapshot to the shared GitHub Cloud Vault, and three teammates have downloaded it. If you secretly erase that tape using `git reset` and force-push, everyone else’s timeline shatters! Instead, `git revert HEAD` records a brand-new **corrective snapshot** that neatly cancels the bug while keeping the honest audit trail intact.',
     theorySummary:
       '**Important Rule**: `git reset` alone does NOT undo a pushed commit on GitHub. Rewriting published history requires `git push --force-with-lease`, which should be avoided on shared branches like `main`. Always prefer `git revert HEAD` on shared repositories: it creates a new inverse commit that can be pushed normally with `git push`.',
     proTip:
-      'Congratulations! You now master all 4 Git stages — forward AND backward. Use the Flow Matrix, Branch Lab, and Cheat Sheet tabs anytime, or click "Download Offline HTML" to keep this entire interactive studio on your computer forever.',
+      'With all 4 stages mastered solo, the final 4 chapters show how real engineering teams collaborate daily: feature branches, knowing exactly when to `git pull`, Pull Request code reviews, and contributing to Open Source via Forks & `upstream`.',
     initialState: {
       initialized: true,
       config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
@@ -2735,6 +3065,446 @@ const RAW_LESSONS: LessonStep[] = [
         syntax: 'git push --force-with-lease',
         purpose: 'Updates a personal feature branch after rebase/reset without clobbering teammates.',
         bestPractice: 'Always prefer `--force-with-lease` over raw `--force` (`-f`) on solo feature branches.',
+      },
+    ],
+  },
+  {
+    stepNumber: 17,
+    category: 'Team Collaboration',
+    title: 'Team Feature Workflow & When to git pull',
+    subtitle: 'Best-practice daily cycle for teammates: pull main first, branch cleanly, commit small, and push feature branches',
+    storyTitle: 'The CCTV Room Story — Chapter 16 (Team Studio Rules)',
+    storyText:
+      'Now you are building an app with teammates Sara and Alex. If everyone edits directly inside the `main` showroom at once, people constantly overwrite each other’s work! Instead, every teammate follows a golden rhythm: **pull the latest `main` first**, spin off a private feature room (`git switch -c feat/search`), build in small clean commits, and push only your feature branch.',
+    theorySummary:
+      '• **The Golden Feature-Branch Rule**: Treat `main` as sacred, always-deployable code. Never commit directly to `main` on a team project.\n• **The 4 Exact Moments to Run `git pull`**:\n  1. **Before starting any new feature**: `git switch main` → `git pull origin main` → `git switch -c feat/my-task` (prevents starting on stale code).\n  2. **Mid-feature on long tasks (daily sync)**: `git fetch origin` then `git merge origin/main` (or `git rebase origin/main`) so you catch tiny merge conflicts early instead of a giant conflict days later.\n  3. **Right before opening a Pull Request**: Sync with latest `main` and re-run tests so reviewers see a green, conflict-free diff.\n  4. **Right after your PR is merged**: `git switch main` → `git pull` → `git branch -d feat/my-task` to clean up.\n• **Small, Atomic Commits**: Keep each feature branch focused on **one** ticket/task (under ~300 lines when possible) so teammates can review it in minutes.',
+    proTip:
+      'Run `git pull --rebase` when pulling onto a clean branch — it replays any unpushed local commits neatly on top of your teammates’ changes without cluttering the log with automatic merge bubbles.',
+    initialState: {
+      initialized: true,
+      config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
+      workspace: [
+        { name: 'index.html', status: 'clean', detail: 'Clean local main' },
+        { name: 'app.js', status: 'clean', detail: '1 commit behind GitHub' },
+      ],
+      staging: [],
+      stash: [],
+      localCommits: [
+        { id: '2a1c4f0', message: 'Base app layout', branch: 'main', files: ['index.html'], author: 'Mamun' },
+      ],
+      remoteCommits: [
+        { id: '8f3e2b9', message: 'Add navbar auth state (Sara)', branch: 'origin/main', files: ['api-fix.js'], author: 'Sara' },
+        { id: '2a1c4f0', message: 'Base app layout', branch: 'origin/main', files: ['index.html'], author: 'Mamun' },
+      ],
+      remoteConnected: true,
+      remoteUrl: 'git@github.com:team/app.git',
+      sshReady: true,
+      branches: ['main'],
+      currentBranch: 'main',
+      headDetachedAt: null,
+      activeFlow: null,
+      terminalLines: ['$ # Teammate Sara just merged 8f3e2b9 to origin/main! Pull first, then branch for your new feature.'],
+      highlightStage: 'remote',
+    },
+    commands: [
+      {
+        id: 's17-pull',
+        command: 'git pull origin main',
+        label: '1. Pull teammate updates first',
+        kind: 'do',
+        routeLabel: 'Remote → Local + Workspace',
+        effect: { type: 'pull_origin' },
+      },
+      {
+        id: 's17-branch',
+        command: 'git switch -c feat/search',
+        label: '2. Cut fresh feature branch',
+        kind: 'do',
+        routeLabel: 'New branch off main',
+        effect: { type: 'branch_create', arg: 'feat/search' },
+      },
+      {
+        id: 's17-commit',
+        command: 'git commit -m "Add live search bar"',
+        label: '3. Commit focused feature work',
+        kind: 'do',
+        routeLabel: 'Staging → Local (feat/search)',
+        effect: { type: 'branch_commit', arg: 'Add live search bar' },
+      },
+      {
+        id: 's17-push',
+        command: 'git push -u origin feat/search',
+        label: '4. Push feature branch safely',
+        kind: 'do',
+        routeLabel: 'Local → Remote (feat/search)',
+        effect: { type: 'push_feature', arg: 'feat/search' },
+      },
+    ],
+    vocabulary: [
+      {
+        term: 'Feature Branch Workflow',
+        meaning: 'Every new feature or bug fix is developed in its own short-lived branch cut from up-to-date `main`.',
+        analogy: 'Working in a separate side studio before bringing finished artwork into the main gallery.',
+      },
+      {
+        term: 'Branch Naming Convention',
+        meaning: 'Prefixing branches clearly like `feat/search`, `fix/login-bug`, `docs/readme`, or `chore/deps`.',
+        analogy: 'Labeling each side room door so teammates instantly know what is being built inside.',
+      },
+      {
+        term: 'Atomic Commit',
+        meaning: 'A single focused commit that does one logical thing and leaves the app building cleanly.',
+        analogy: 'Taking one crisp photo per milestone instead of waiting until the whole room is torn apart.',
+      },
+    ],
+    flags: [
+      {
+        flag: 'switch -c',
+        syntax: 'git switch -c feat/search',
+        purpose: 'Modern, crystal-clear command to create and immediately switch to a new branch.',
+        bestPractice: 'Always run `git pull origin main` right before `git switch -c`.',
+      },
+      {
+        flag: '-u (push)',
+        syntax: 'git push -u origin feat/search',
+        purpose: 'Publishes your feature branch to GitHub and links tracking so future pushes are just `git push`.',
+        bestPractice: 'Use `-u` the first time you push any newly created branch.',
+      },
+      {
+        flag: '--rebase (pull)',
+        syntax: 'git pull --rebase origin main',
+        purpose: 'Fetches remote commits and replays your local commits cleanly on top.',
+        bestPractice: 'Keeps team history linear and avoids noisy auto-merge commits.',
+      },
+    ],
+  },
+  {
+    stepNumber: 18,
+    category: 'Team Collaboration',
+    title: 'Pull Request (PR) Flow & Code Review',
+    subtitle: 'Open a Pull Request, address reviewer feedback with follow-up commits, squash-merge, and delete stale branches',
+    storyTitle: 'The CCTV Room Story — Chapter 17 (The Inspection Gate)',
+    storyText:
+      'Your feature room (`feat/search`) is uploaded to the Cloud Vault, yet it has NOT entered `main` yet! On GitHub, you open a **Pull Request (PR)** — an official invitation asking teammates: *"Please inspect my diff and pull `feat/search` into `main`."* Reviewers leave line-by-line suggestions, automated tests run, and every new `git push` to your branch updates the exact same PR automatically!',
+    theorySummary:
+      '• **What is a Pull Request (PR)?** A GitHub collaboration gate (called a *Merge Request* on GitLab) showing the exact diff between your **head branch** (`feat/search`) and the **base branch** (`main`), paired with discussion threads, approvals, and CI checks.\n• **How PR Feedback Works (Zero Need to Open a New PR!)**: When a reviewer requests a change, stay on your same branch (`feat/search`), make the fix, `git commit`, and run `git push`. GitHub automatically appends the new commit to the open PR!\n• **3 Merge Button Options on GitHub**:\n  1. **Squash and Merge** *(Most popular for teams)*: Combines messy WIP commits (`"wip"`, `"fix typo"`) into **1 clean commit** on `main`.\n  2. **Create a Merge Commit**: Preserves every individual branch commit plus a merge bubble.\n  3. **Rebase and Merge**: Replays every individual commit linearly onto `main`.\n• **Post-Merge Cleanup**: Delete the merged branch on GitHub and locally (`git branch -d feat/search`) so branches never pile up.',
+    proTip:
+      'Write a great PR description with **What changed**, **Why**, and a **Screenshot / How to test** checklist — reviewers approve clear PRs 3× faster!',
+    initialState: {
+      initialized: true,
+      config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
+      workspace: [
+        { name: 'index.html', status: 'clean', detail: 'Clean' },
+        { name: 'search.tsx', status: 'modified', detail: 'New feature ready for PR' },
+      ],
+      staging: [
+        { name: 'search.tsx', status: 'staged', detail: 'Ready for review fix' },
+      ],
+      stash: [],
+      localCommits: [
+        { id: 'f6c21a4', message: 'Add live search bar', branch: 'feat/search', files: ['search.tsx'], author: 'Mamun' },
+        { id: '8f3e2b9', message: 'Add navbar auth state (Sara)', branch: 'main', files: ['api-fix.js'], author: 'Sara' },
+      ],
+      remoteCommits: [
+        { id: '8f3e2b9', message: 'Add navbar auth state (Sara)', branch: 'origin/main', files: ['api-fix.js'], author: 'Sara' },
+      ],
+      remoteConnected: true,
+      remoteUrl: 'git@github.com:team/app.git',
+      sshReady: true,
+      branches: ['main', 'feat/search'],
+      currentBranch: 'feat/search',
+      headDetachedAt: null,
+      activeFlow: null,
+      terminalLines: ['$ # Walk through the complete Pull Request lifecycle from push → review fix → squash merge!'],
+      highlightStage: 'local',
+    },
+    commands: [
+      {
+        id: 's18-open',
+        command: 'git push -u origin feat/search',
+        label: '1. Push & open PR #42',
+        kind: 'do',
+        routeLabel: 'Local → GitHub PR #42',
+        effect: { type: 'open_pr', arg: 'feat/search' },
+      },
+      {
+        id: 's18-fix',
+        command: 'git commit -m "Address PR review: debounce"',
+        label: '2. Commit reviewer fix',
+        kind: 'do',
+        routeLabel: 'Staging → Local (feat/search)',
+        effect: { type: 'pr_review_fix' },
+      },
+      {
+        id: 's18-push2',
+        command: 'git push',
+        label: '3. Auto-update open PR #42',
+        kind: 'do',
+        routeLabel: 'Local → Update PR #42',
+        effect: { type: 'push_pr_update' },
+      },
+      {
+        id: 's18-merge',
+        command: 'gh pr merge 42 --squash --delete-branch',
+        label: '4. Squash merge & clean branch',
+        kind: 'do',
+        routeLabel: 'PR #42 → main (cleanup)',
+        effect: { type: 'pr_merge_cleanup' },
+      },
+    ],
+    vocabulary: [
+      {
+        term: 'Pull Request (PR)',
+        meaning: 'A GitHub request proposing to merge changes from a feature branch (head) into a target branch (base) after review.',
+        analogy: 'Submitting your side-room work at the Inspection Gate for teammates to approve before moving it to the main showroom.',
+      },
+      {
+        term: 'Draft PR',
+        meaning: 'A work-in-progress Pull Request marked not ready for merge yet, used to get early design feedback or trigger CI.',
+        analogy: 'Putting a "Feedback Welcome — Still Painting" sign on your inspection request.',
+      },
+      {
+        term: 'Squash & Merge',
+        meaning: 'Combines all commits from a PR branch into a single neat commit on `main`.',
+        analogy: 'Summarizing 6 rough progress snapshots into 1 polished finished milestone photo.',
+      },
+      {
+        term: 'Branch Protection Rules',
+        meaning: 'GitHub rules blocking direct pushes to `main` and requiring PR approvals + passing CI tests before merging.',
+        analogy: 'Locking the main showroom door so changes can only enter through the Inspection Gate.',
+      },
+    ],
+    flags: [
+      {
+        flag: 'Draft PR',
+        syntax: 'gh pr create --draft',
+        purpose: 'Opens a work-in-progress PR early to share progress and run automated tests.',
+        bestPractice: 'Use Draft PRs for big features so teammates spot architecture issues early.',
+      },
+      {
+        flag: '--squash',
+        syntax: 'gh pr merge --squash --delete-branch',
+        purpose: 'Merges a PR as one clean commit and deletes the feature branch automatically.',
+        bestPractice: 'Best default for keeping `main` history readable and clean.',
+      },
+      {
+        flag: 'Fixes #123',
+        syntax: 'In PR body: "Closes #123"',
+        purpose: 'Automatically closes the linked GitHub Issue the moment your PR is merged.',
+        bestPractice: 'Always link the ticket/issue number inside your PR description.',
+      },
+    ],
+  },
+  {
+    stepNumber: 19,
+    category: 'Open Source',
+    title: 'Open-Source Contribution — Fork, Branch & PR',
+    subtitle: 'Contribute to public repos you don’t own using Fork → Clone → Add upstream → Feature Branch → Cross-Repo PR',
+    storyTitle: 'The CCTV Room Story — Chapter 18 (Contributing to Open Source)',
+    storyText:
+      'You discover an accessibility bug in a popular open-source library (`awesome-org/ui-kit`). Because you are not a maintainer, GitHub blocks you from running `git push` directly to `awesome-org/ui-kit`. Instead, you click **Fork** on GitHub to create your own personal cloud copy (`mamun/ui-kit`), clone YOUR fork (`origin`), link the original project as `upstream`, create a fix branch, push to your fork, and open a **Cross-Repo Pull Request** back to `awesome-org/ui-kit`!',
+    theorySummary:
+      '• **Why Fork Instead of Direct Clone?** A direct clone of someone else’s public repo gives you read-only access (you’ll get `Permission denied` on push). **Forking** makes a server-side copy under *your* GitHub account where you have full push permissions.\n• **The 2 Remotes Every Open-Source Contributor Sets**:\n  - **`origin`** → YOUR fork (`github.com/your-name/repo.git`) — where you **push** your branches.\n  - **`upstream`** → THE ORIGINAL repo (`github.com/original-org/repo.git`) — where you **fetch/pull** official updates.\n• **Open-Source Best Practices**:\n  1. Read `CONTRIBUTING.md` and check open Issues first (ask before building huge features).\n  2. **Never commit to `main` on your fork!** Always create a dedicated branch (`git switch -c fix/button-aria`) so your `main` stays a pure mirror of `upstream/main`.\n  3. Run tests/lint locally, push to `origin`, and open a PR from `your-name:fix/button-aria` → `awesome-org:main`.',
+    proTip:
+      'Keep your fork’s `main` branch 100% untouched (never make direct commits on it). That way, syncing with `upstream/main` later is ALWAYS a painless fast-forward with zero conflicts!',
+    initialState: {
+      initialized: false,
+      config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
+      workspace: [],
+      staging: [],
+      stash: [],
+      localCommits: [],
+      remoteCommits: [
+        { id: '3b2c9a0', message: 'v2.4.0 Release (forked from upstream)', branch: 'origin/main', files: ['Button.tsx', 'README.md'], author: 'Maintainer' },
+      ],
+      remoteConnected: false,
+      remoteUrl: 'git@github.com:mamun/ui-kit.git',
+      sshReady: true,
+      branches: ['main'],
+      currentBranch: 'main',
+      headDetachedAt: null,
+      activeFlow: null,
+      terminalLines: ['$ # Step 0 done on GitHub: Clicked "Fork" on awesome-org/ui-kit -> mamun/ui-kit. Now clone YOUR fork!'],
+      highlightStage: 'remote',
+    },
+    commands: [
+      {
+        id: 's19-clone',
+        command: 'git clone git@github.com:mamun/ui-kit.git',
+        label: '1. Clone YOUR fork (origin)',
+        kind: 'do',
+        routeLabel: 'Your Fork → Local + Workspace',
+        effect: { type: 'fork_clone' },
+      },
+      {
+        id: 's19-upstream',
+        command: 'git remote add upstream git@github.com:awesome-org/ui-kit.git',
+        label: '2. Link original repo (upstream)',
+        kind: 'do',
+        routeLabel: 'Register upstream URL',
+        effect: { type: 'upstream_add' },
+      },
+      {
+        id: 's19-branch',
+        command: 'git switch -c fix/button-aria',
+        label: '3. Branch off clean main',
+        kind: 'do',
+        routeLabel: 'Create fix branch',
+        effect: { type: 'branch_create', arg: 'fix/button-aria' },
+      },
+      {
+        id: 's19-push',
+        command: 'git push -u origin fix/button-aria',
+        label: '4. Push fix & open upstream PR',
+        kind: 'do',
+        routeLabel: 'Local → Your Fork (for PR)',
+        effect: { type: 'push_fork_pr', arg: 'fix/button-aria' },
+      },
+    ],
+    vocabulary: [
+      {
+        term: 'Fork',
+        meaning: 'A personal copy of another organization’s GitHub repository under your own account so you can push branches freely.',
+        analogy: 'Cloning the public museum blueprint into your own private studio vault so you can propose improvements.',
+      },
+      {
+        term: 'origin vs upstream',
+        meaning: '`origin` points to YOUR fork on GitHub (read/write); `upstream` points to the ORIGINAL project repository (read-only).',
+        analogy: '`origin` is your personal cloud locker; `upstream` is the official headquarters master vault.',
+      },
+      {
+        term: 'Cross-Repository PR',
+        meaning: 'A Pull Request proposing to merge a branch from YOUR fork (`mamun:fix/button-aria`) into the original repo (`awesome-org:main`).',
+        analogy: 'Mailing a finished patch from your studio back to headquarters for inclusion in the official release.',
+      },
+    ],
+    flags: [
+      {
+        flag: 'remote add upstream',
+        syntax: 'git remote add upstream <original-url>',
+        purpose: 'Saves the original open-source repository URL under the standard alias `upstream`.',
+        bestPractice: 'Run immediately after cloning your fork so syncing later is effortless.',
+      },
+      {
+        flag: 'remote -v',
+        syntax: 'git remote -v',
+        purpose: 'Lists all configured remote aliases (`origin` and `upstream`) with their fetch/push URLs.',
+        bestPractice: 'Check this if you ever aren’t sure whether you’re pushing to your fork or upstream.',
+      },
+      {
+        flag: 'CONTRIBUTING.md',
+        syntax: 'Check repo root before coding',
+        purpose: 'Documents code style, commit message rules, test commands, and PR guidelines.',
+        bestPractice: 'Reading `CONTRIBUTING.md` first prevents your PR from being rejected on style rules.',
+      },
+    ],
+  },
+  {
+    stepNumber: 20,
+    category: 'Open Source',
+    title: 'Keeping Your Fork Updated with upstream',
+    subtitle: 'Sync your stale fork with the original repository using fetch upstream → merge → push origin (or Sync Fork)',
+    storyTitle: 'The CCTV Room Story — Chapter 19 (Finale: Syncing Your Fork)',
+    storyText:
+      'Two weeks after your first open-source contribution, the maintainers of `awesome-org/ui-kit` merged 20 new commits. Your GitHub fork (`mamun/ui-kit`) does **NOT** update automatically — it is now behind! Before starting your next contribution, you pull fresh blueprints from `upstream`, fast-forward your local `main`, and push them up to `origin` so both your PC and your fork are 100% current.',
+    theorySummary:
+      '• **Why Forks Fall Behind**: A GitHub Fork is a snapshot taken at the moment you clicked Fork. New commits added to `awesome-org/ui-kit` never auto-sync into your fork unless you trigger a sync.\n• **The 3-Step CLI Sync Recipe** (from your `main` branch):\n  1. `git fetch upstream` — Downloads all new commits from the original project into `upstream/main`.\n  2. `git merge upstream/main` — Fast-forwards your local `main` branch (and Workspace) cleanly with zero conflicts because you kept `main` clean!\n  3. `git push origin main` — Pushes those fresh commits up to YOUR GitHub fork so your cloud copy matches `upstream` too.\n• **What if you already have an open feature branch?** Sync `main` first, then run `git switch fix/my-pr` and `git rebase main` (or `git merge main`), followed by `git push --force-with-lease` if you rebased.\n• **GitHub Web Shortcut**: You can also click **"Sync fork → Update branch"** on your fork’s GitHub page, then simply run `git pull origin main` on your laptop!',
+    proTip:
+      'Congratulations on reaching 100%! You now master Git from `git init` all the way to Team Pull Requests and Open-Source Fork Syncing. Use the Branch Lab, Flow Matrix, and Cheat Sheet anytime — or click **Download Offline HTML** to keep this complete 20-step studio offline forever.',
+    initialState: {
+      initialized: true,
+      config: { name: 'Mamun', email: 'mamun@dev.io', autocrlf: 'true' },
+      workspace: [
+        { name: 'Button.tsx', status: 'clean', detail: '2 commits behind upstream' },
+        { name: 'README.md', status: 'clean', detail: '2 commits behind upstream' },
+      ],
+      staging: [],
+      stash: [],
+      localCommits: [
+        { id: '3b2c9a0', message: 'v2.4.0 Release (your fork is behind)', branch: 'main', files: ['Button.tsx'], author: 'Maintainer' },
+      ],
+      remoteCommits: [
+        { id: '3b2c9a0', message: 'v2.4.0 Release (origin/main is behind)', branch: 'origin/main', files: ['Button.tsx'], author: 'Maintainer' },
+      ],
+      remoteConnected: true,
+      remoteUrl: 'git@github.com:mamun/ui-kit.git',
+      sshReady: true,
+      branches: ['main'],
+      currentBranch: 'main',
+      headDetachedAt: null,
+      activeFlow: null,
+      terminalLines: ['$ # Original repo (upstream) has 2 new commits! Sync Local main & YOUR fork in 3 steps.'],
+      highlightStage: 'remote',
+    },
+    commands: [
+      {
+        id: 's20-remotes',
+        command: 'git remote -v',
+        label: '1. Verify origin & upstream',
+        kind: 'inspect',
+        routeLabel: 'Inspect remotes',
+        effect: { type: 'remote_list_upstream' },
+      },
+      {
+        id: 's20-fetch',
+        command: 'git fetch upstream',
+        label: '2. Fetch original repo updates',
+        kind: 'do',
+        routeLabel: 'upstream → Local Repo',
+        effect: { type: 'upstream_fetch' },
+      },
+      {
+        id: 's20-merge',
+        command: 'git merge upstream/main',
+        label: '3. Fast-forward local main',
+        kind: 'do',
+        routeLabel: 'Local → Workspace',
+        effect: { type: 'upstream_merge' },
+      },
+      {
+        id: 's20-push',
+        command: 'git push origin main',
+        label: '4. Update YOUR GitHub fork',
+        kind: 'do',
+        routeLabel: 'Local → origin (Your Fork)',
+        effect: { type: 'upstream_push_origin' },
+      },
+    ],
+    vocabulary: [
+      {
+        term: 'upstream/main',
+        meaning: 'Your local read-only tracking bookmark showing the latest commit fetched from the original project’s `main` branch.',
+        analogy: 'The official news ticker from headquarters saved on your DVR.',
+      },
+      {
+        term: 'Sync Fork (GitHub UI)',
+        meaning: 'A one-click button on your GitHub fork page that updates `origin/main` from `upstream/main` directly in the cloud.',
+        analogy: 'Asking the cloud vault to copy headquarters’ latest master tape straight into your locker.',
+      },
+      {
+        term: 'Rebasing a Stale PR Branch',
+        meaning: 'Running `git rebase main` on your feature branch after syncing `main` so your PR applies cleanly to the newest code.',
+        analogy: 'Lifting your side-room drawing onto the freshly updated blueprint before inspection.',
+      },
+    ],
+    flags: [
+      {
+        flag: 'fetch upstream',
+        syntax: 'git fetch upstream',
+        purpose: 'Downloads new commits and tags from the original repository without changing your working files.',
+        bestPractice: 'Always fetch `upstream` before creating a new open-source PR branch.',
+      },
+      {
+        flag: 'merge upstream/main',
+        syntax: 'git switch main && git merge upstream/main',
+        purpose: 'Fast-forwards your local `main` branch to match the original project.',
+        bestPractice: 'Works conflict-free as long as you never commit directly to your fork’s `main`.',
+      },
+      {
+        flag: 'push origin main',
+        syntax: 'git push origin main',
+        purpose: 'Updates your personal GitHub fork so its `main` branch matches `upstream/main`.',
+        bestPractice: 'Always finish the sync by pushing to `origin` so your GitHub fork stays fresh.',
       },
     ],
   },

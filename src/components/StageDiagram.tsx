@@ -23,6 +23,7 @@ import { FileEntry, RepoState, StageId } from '../types/git';
 
 interface StageDiagramProps {
   state: RepoState;
+  hasCommands?: boolean;
 }
 
 // X coordinates aligned with the 4 side-by-side columns:
@@ -99,7 +100,10 @@ function FileStatusRow({ file }: { file: FileEntry }) {
   );
 }
 
-export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
+export const StageDiagram: React.FC<StageDiagramProps> = ({
+  state,
+  hasCommands = true,
+}) => {
   const [inspectDotGit, setInspectDotGit] = useState(false);
 
   const flow = state.activeFlow;
@@ -115,15 +119,13 @@ export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
       ? '#4F46E5'
       : '#0284C7';
 
-  const stageBorder = (id: StageId, defaultBorder: string) =>
-    state.highlightStage === id
-      ? 'border-slate-900 ring-2 ring-slate-900/10'
-      : defaultBorder;
+  const stageHighlight = (id: StageId) =>
+    state.highlightStage === id ? 'ring-2 ring-slate-900/20 shadow-sm' : '';
 
   return (
     <section
       aria-label="Four Stage Git Architecture Diagram"
-      className="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col shrink-0"
+      className="grad-card rounded-xl p-2.5 flex flex-col shrink-0"
     >
       {/* Top Animated Flow Arc Aligned Directly Over the 4 Side-by-Side Stages */}
       <div className="mb-1">
@@ -260,7 +262,9 @@ export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
             >
               {flow
                 ? flow.label
-                : 'Click any command below to watch changes flow across all 4 stages'}
+                : hasCommands
+                ? 'Click any command below to watch changes flow across all 4 stages'
+                : 'Git runs Stages 1–3 locally on your computer · GitHub hosts Stage 4 in the cloud'}
             </text>
           )}
         </svg>
@@ -293,9 +297,8 @@ export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
             <div className="grid grid-cols-3 gap-1.5 flex-1 items-stretch">
               {/* STAGE 1: WORKSPACE */}
               <div
-                className={`flex flex-col rounded-md border bg-[#FFFDF9] p-2 min-w-0 transition-all duration-200 ${stageBorder(
-                  'workspace',
-                  'border-amber-200'
+                className={`flex flex-col rounded-lg grad-stage-ws p-2 min-w-0 transition-all duration-200 ${stageHighlight(
+                  'workspace'
                 )}`}
               >
                 <div className="pb-1 border-b border-amber-200/60">
@@ -342,9 +345,8 @@ export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
 
               {/* STAGE 2: STAGING AREA */}
               <div
-                className={`flex flex-col rounded-md border bg-[#F9FCFF] p-2 min-w-0 transition-all duration-200 ${stageBorder(
-                  'staging',
-                  'border-sky-200'
+                className={`flex flex-col rounded-lg grad-stage-st p-2 min-w-0 transition-all duration-200 ${stageHighlight(
+                  'staging'
                 )}`}
               >
                 <div className="pb-1 border-b border-sky-200/60">
@@ -384,9 +386,8 @@ export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
 
               {/* STAGE 3: LOCAL REPO */}
               <div
-                className={`flex flex-col rounded-md border bg-[#F8FDFB] p-2 min-w-0 transition-all duration-200 ${stageBorder(
-                  'local',
-                  'border-emerald-200'
+                className={`flex flex-col rounded-lg grad-stage-lo p-2 min-w-0 transition-all duration-200 ${stageHighlight(
+                  'local'
                 )}`}
               >
                 <div className="pb-1 border-b border-emerald-200/60 flex items-start justify-between gap-1">
@@ -499,7 +500,7 @@ export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
           </div>
 
           {/* GROUP 2: REMOTE CLOUD SERVER (GITHUB) */}
-          <div className="rounded-lg border border-indigo-200/90 bg-indigo-50/45 p-1.5 flex flex-col">
+          <div className="rounded-lg grad-group-cloud p-1.5 flex flex-col">
             <div className="flex items-center justify-between gap-1 px-1 pb-1.5">
               <div className="flex items-center gap-1 min-w-0">
                 <Cloud className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
@@ -514,9 +515,8 @@ export const StageDiagram: React.FC<StageDiagramProps> = ({ state }) => {
 
             {/* STAGE 4: REMOTE REPO */}
             <div
-              className={`flex flex-col flex-1 rounded-md border bg-[#FAFAFF] p-2 min-w-0 transition-all duration-200 ${stageBorder(
-                'remote',
-                'border-indigo-200'
+              className={`flex flex-col flex-1 rounded-lg grad-stage-rm p-2 min-w-0 transition-all duration-200 ${stageHighlight(
+                'remote'
               )}`}
             >
               <div className="pb-1 border-b border-indigo-200/60">

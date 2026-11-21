@@ -1,4 +1,5 @@
 import { LESSONS } from '../data/lessons';
+import { LESSONS_BN } from '../data/lessonsBn';
 import { CHEAT_SHEET, STAGE_FLOW_ROWS } from '../data/cheatSheet';
 
 const OFFLINE_COMMAND_ENGINE_JS = `
@@ -446,6 +447,135 @@ const OFFLINE_COMMAND_ENGINE_JS = `
           s.highlightStage = 'remote';
           s.terminalLines = ['$ ' + rawCommand, 'Successfully pushed revert commit to origin/main without rewriting shared history!'];
           return s;
+        case 'push_feature': {
+          const branch = effect.arg || s.currentBranch;
+          s.remoteConnected = true;
+          const latest = s.localCommits[0];
+          if (latest && !s.remoteCommits.some(c => c.id === latest.id)) {
+            s.remoteCommits.unshift({ ...latest, branch: 'origin/' + branch });
+          }
+          s.activeFlow = { from: 'local', to: 'remote', direction: 'forward', command: rawCommand, label: 'Pushed branch ' + branch };
+          s.highlightStage = 'remote';
+          s.terminalLines = ['$ ' + rawCommand, '* [new branch] ' + branch + ' -> origin/' + branch, 'GitHub link ready: Open a Pull Request into main without touching main directly!'];
+          return s;
+        }
+        case 'open_pr': {
+          const branch = effect.arg || 'feat/search';
+          s.remoteConnected = true;
+          if (!s.remoteCommits.some(c => c.id === 'f6c21a4')) {
+            s.remoteCommits.unshift({ id: 'f6c21a4', message: 'PR #42 Open: Add live search bar', branch: 'origin/' + branch, files: ['search.tsx'], author: s.config.name || 'Mamun' });
+          }
+          s.activeFlow = { from: 'local', to: 'remote', direction: 'forward', command: rawCommand, label: 'PR #42 opened (' + branch + ' -> main)' };
+          s.highlightStage = 'remote';
+          s.terminalLines = ['$ ' + rawCommand, 'Opened Pull Request #42 on GitHub: ' + branch + ' -> main', 'CI checks passed! Reviewer Sara left 1 comment: "Please debounce search input by 250ms."'];
+          return s;
+        }
+        case 'pr_review_fix': {
+          const fixId = 'a9e4b12';
+          if (!s.localCommits.some(c => c.id === fixId)) {
+            s.localCommits.unshift({ id: fixId, message: 'Address PR review: debounce input', branch: s.currentBranch, files: ['search.tsx'], author: s.config.name || 'Mamun' });
+          }
+          s.workspace = s.workspace.map(f => f.name === 'search.tsx' ? { ...f, status: 'clean', detail: 'Debounced 250ms (ready to push)' } : f);
+          s.staging = [];
+          s.activeFlow = { from: 'staging', to: 'local', direction: 'forward', command: rawCommand, label: 'Review fix committed (' + fixId + ')' };
+          s.highlightStage = 'local';
+          s.terminalLines = ['$ ' + rawCommand, '[' + s.currentBranch + ' ' + fixId + '] Address PR review: debounce input', 'Now run git push — your existing Pull Request #42 will update automatically!'];
+          return s;
+        }
+        case 'push_pr_update': {
+          const fix = s.localCommits.find(c => c.id === 'a9e4b12') || s.localCommits[0];
+          if (fix && !s.remoteCommits.some(c => c.id === fix.id)) {
+            s.remoteCommits.unshift({ ...fix, branch: 'origin/' + s.currentBranch });
+          }
+          s.activeFlow = { from: 'local', to: 'remote', direction: 'forward', command: rawCommand, label: 'PR #42 auto-updated!' };
+          s.highlightStage = 'remote';
+          s.terminalLines = ['$ ' + rawCommand, 'Updated origin/' + s.currentBranch + ' -> Pull Request #42 automatically refreshed!', 'Reviewer Sara clicked "Approve" — ready to Squash & Merge into main.'];
+          return s;
+        }
+        case 'pr_merge_cleanup': {
+          const mergedId = 'm42e8f1';
+          if (!s.remoteCommits.some(c => c.id === mergedId)) {
+            s.remoteCommits.unshift({ id: mergedId, message: 'Add live search bar (#42)', branch: 'origin/main', files: ['search.tsx'], author: 'Mamun', isMerge: true });
+          }
+          if (!s.localCommits.some(c => c.id === mergedId)) {
+            s.localCommits.unshift({ id: mergedId, message: 'Add live search bar (#42)', branch: 'main', files: ['search.tsx'], author: 'Mamun', isMerge: true });
+          }
+          s.currentBranch = 'main';
+          s.branches = ['main'];
+          s.activeFlow = { from: 'remote', to: 'local', direction: 'backward', command: rawCommand, label: 'PR #42 merged & branch cleaned' };
+          s.highlightStage = 'local';
+          s.terminalLines = ['$ ' + rawCommand, 'Squashed & merged PR #42 into origin/main, deleted feat/search, and synced local main!'];
+          return s;
+        }
+        case 'fork_clone':
+          s.initialized = true;
+          s.remoteConnected = true;
+          s.remoteUrl = 'git@github.com:mamun/ui-kit.git';
+          s.localCommits = JSON.parse(JSON.stringify(s.remoteCommits)).map(c => ({ ...c, branch: 'main' }));
+          s.workspace = [
+            { name: 'Button.tsx', status: 'clean', detail: 'Cloned from YOUR fork' },
+            { name: 'README.md', status: 'clean', detail: 'Cloned from YOUR fork' },
+            { name: 'CONTRIBUTING.md', status: 'clean', detail: 'Read project guidelines!' }
+          ];
+          s.activeFlow = { from: 'remote', to: 'workspace', direction: 'backward', command: rawCommand, label: 'Cloned YOUR fork (origin)' };
+          s.highlightStage = 'workspace';
+          s.terminalLines = ['$ ' + rawCommand, "Cloning into 'ui-kit'... origin -> git@github.com:mamun/ui-kit.git (YOUR fork)", 'Tip: Always read CONTRIBUTING.md and link the original repo as "upstream" next.'];
+          return s;
+        case 'upstream_add':
+          s.remoteConnected = true;
+          s.activeFlow = { from: 'local', to: 'remote', direction: 'inspect', command: rawCommand, label: 'Linked original repo as upstream' };
+          s.highlightStage = 'remote';
+          s.terminalLines = ['$ ' + rawCommand, 'origin   -> git@github.com:mamun/ui-kit.git (YOUR fork — push here)', 'upstream -> git@github.com:awesome-org/ui-kit.git (ORIGINAL repo — pull updates here)'];
+          return s;
+        case 'push_fork_pr': {
+          const branch = effect.arg || s.currentBranch;
+          const fixId = 'c81a3f2';
+          if (!s.localCommits.some(c => c.id === fixId)) {
+            s.localCommits.unshift({ id: fixId, message: 'fix: add aria-label to icon Button', branch, files: ['Button.tsx'], author: s.config.name || 'Mamun' });
+          }
+          if (!s.remoteCommits.some(c => c.id === fixId)) {
+            s.remoteCommits.unshift({ id: fixId, message: 'fix: add aria-label to icon Button', branch: 'origin/' + branch, files: ['Button.tsx'], author: s.config.name || 'Mamun' });
+          }
+          s.activeFlow = { from: 'local', to: 'remote', direction: 'forward', command: rawCommand, label: 'Pushed ' + branch + ' to YOUR fork' };
+          s.highlightStage = 'remote';
+          s.terminalLines = ['$ ' + rawCommand, 'Pushed ' + branch + ' to origin (mamun/ui-kit).', 'On GitHub click "Compare & pull request": mamun:fix/button-aria -> awesome-org:main!'];
+          return s;
+        }
+        case 'remote_list_upstream':
+          s.highlightStage = 'remote';
+          s.activeFlow = { from: 'local', to: 'remote', direction: 'inspect', command: rawCommand, label: 'Inspecting origin & upstream' };
+          s.terminalLines = ['$ ' + rawCommand, 'origin   git@github.com:mamun/ui-kit.git (fetch/push)  [YOUR FORK]', 'upstream git@github.com:awesome-org/ui-kit.git (fetch) [ORIGINAL REPO]'];
+          return s;
+        case 'upstream_fetch': {
+          const incoming = [
+            { id: 'u72b10a', message: 'fix: keyboard focus ring (upstream)', branch: 'upstream/main', files: ['Button.tsx'], author: 'Maintainer' },
+            { id: 'u94c2e1', message: 'feat: add Tooltip component (upstream)', branch: 'upstream/main', files: ['Tooltip.tsx'], author: 'Maintainer' }
+          ];
+          incoming.forEach(c => { if (!s.localCommits.some(lc => lc.id === c.id)) s.localCommits.unshift(c); });
+          s.activeFlow = { from: 'remote', to: 'local', direction: 'backward', command: rawCommand, label: 'Fetched upstream/main -> Local' };
+          s.highlightStage = 'local';
+          s.terminalLines = ['$ ' + rawCommand, 'From github.com:awesome-org/ui-kit', '   3b2c9a0..u94c2e1  main -> upstream/main (2 new commits downloaded safely)'];
+          return s;
+        }
+        case 'upstream_merge': {
+          const ensure = [
+            { id: 'u72b10a', message: 'fix: keyboard focus ring (upstream)', branch: 'main', files: ['Button.tsx'], author: 'Maintainer' },
+            { id: 'u94c2e1', message: 'feat: add Tooltip component (upstream)', branch: 'main', files: ['Tooltip.tsx'], author: 'Maintainer' }
+          ];
+          ensure.forEach(c => { if (!s.localCommits.some(lc => lc.id === c.id)) s.localCommits.unshift(c); });
+          s.localCommits = s.localCommits.map(c => ({ ...c, branch: 'main' }));
+          if (!s.workspace.some(f => f.name === 'Tooltip.tsx')) s.workspace.push({ name: 'Tooltip.tsx', status: 'clean', detail: 'Synced from upstream' });
+          s.activeFlow = { from: 'local', to: 'workspace', direction: 'backward', command: rawCommand, label: 'Fast-forwarded local main' };
+          s.highlightStage = 'workspace';
+          s.terminalLines = ['$ ' + rawCommand, 'Updating 3b2c9a0..u94c2e1 — Fast-forward!', 'Your local main now matches awesome-org/ui-kit 100%. Next: push to YOUR fork (origin)!'];
+          return s;
+        }
+        case 'upstream_push_origin':
+          s.remoteCommits = JSON.parse(JSON.stringify(s.localCommits)).map(c => ({ ...c, branch: 'origin/main' }));
+          s.activeFlow = { from: 'local', to: 'remote', direction: 'forward', command: rawCommand, label: 'Synced YOUR GitHub fork!' };
+          s.highlightStage = 'remote';
+          s.terminalLines = ['$ ' + rawCommand, 'To git@github.com:mamun/ui-kit.git -> 3b2c9a0..u94c2e1  main -> main', 'Both your laptop AND your GitHub fork are now 100% up to date with upstream!'];
+          return s;
         default:
           return s;
       }
@@ -585,13 +715,18 @@ export function buildStandaloneOfflineHtml(): string {
       0% { opacity: 0; transform: translateY(4px); }
       100% { opacity: 1; transform: translateY(0); }
     }
+    @keyframes ringOrbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
     .animate-flow-forward { stroke-dasharray: 6 6; animation: flowDashForward 0.65s linear infinite; }
     .animate-flow-backward { stroke-dasharray: 6 6; animation: flowDashBackward 0.65s linear infinite; }
     .animate-item-arrive { animation: itemArrive 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-ring-orbit { transform-origin: 22px 22px; animation: ringOrbit 2.4s linear infinite; }
     .view-enter { animation: viewFade 0.2s ease-out forwards; }
     @media (prefers-reduced-motion: reduce) {
       .animate-flow-forward, .animate-flow-backward, .animate-item-arrive,
-      .cam-rec, .cam-body, .pop-1, .pop-2, .pop-3, .view-enter { animation: none !important; }
+      .cam-rec, .cam-body, .pop-1, .pop-2, .pop-3, .view-enter, .animate-ring-orbit { animation: none !important; }
     }
 
     /* ===== LAYOUT & 100VH 45% / 55% SPLIT ===== */
@@ -659,15 +794,50 @@ export function buildStandaloneOfflineHtml(): string {
     .nav button:hover { color: var(--ink); border-bottom-color: #CBD5E1; }
     .nav button.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
     .offline-note { font-size: 12px; color: var(--emerald); font-weight: 600; white-space: nowrap; }
+    .lang-switch {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px;
+      border-radius: 8px;
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      gap: 2px;
+    }
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .lang-btn:hover { color: var(--ink); }
+    .lang-btn.active { background: #FFFFFF; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
 
-    /* ===== CONTAINERS & CARDS ===== */
+    /* ===== CONTAINERS & TWO-COLOR GRADIENT BORDER CARDS ===== */
     .container { width: 100%; max-width: 1600px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1.5px solid transparent;
+      background:
+        linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+        linear-gradient(135deg, #38BDF8, #818CF8) border-box;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
       border-radius: 12px;
       padding: 12px 14px;
       flex-shrink: 0;
+    }
+    .card-sky {
+      background:
+        linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+        linear-gradient(135deg, #0EA5E9, #2DD4BF) border-box;
+    }
+    .card-rose {
+      background:
+        linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+        linear-gradient(135deg, #F43F5E, #FB923C) border-box;
     }
     .card-lg { padding: 20px 24px; }
     .stack-6 { display: flex; flex-direction: column; gap: 22px; }
@@ -690,8 +860,10 @@ export function buildStandaloneOfflineHtml(): string {
       flex-direction: column;
     }
     .cloud-group {
-      border: 1.5px solid #C7D2FE;
-      background: rgba(238, 242, 255, 0.45);
+      border: 1.5px solid transparent;
+      background:
+        linear-gradient(#EEF2FF, #F5F3FF) padding-box,
+        linear-gradient(135deg, #6366F1, #C084FC) border-box;
       border-radius: 10px;
       padding: 6px;
       display: flex;
@@ -727,18 +899,18 @@ export function buildStandaloneOfflineHtml(): string {
     }
     .stage-box {
       border-radius: 8px;
-      border: 1.5px solid var(--border);
+      border: 1.5px solid transparent;
       padding: 7px 8px;
       display: flex;
       flex-direction: column;
       min-width: 0;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: box-shadow 0.2s ease;
     }
-    .stage-box.hl { border-color: var(--ink); box-shadow: 0 0 0 2px rgba(15,23,42,0.12); }
-    .stage-ws { background: #FFFDF9; border-color: #FDE68A; }
-    .stage-st { background: #F9FCFF; border-color: #BAE6FD; }
-    .stage-lo { background: #F8FDFB; border-color: #A7F3D0; }
-    .stage-rm { background: #FAFAFF; border-color: #C7D2FE; flex: 1; }
+    .stage-box.hl { box-shadow: 0 0 0 2px rgba(15,23,42,0.2); }
+    .stage-ws { background: linear-gradient(#FFFDF9, #FFFDF9) padding-box, linear-gradient(135deg, #F59E0B, #FB7185) border-box; }
+    .stage-st { background: linear-gradient(#F9FCFF, #F9FCFF) padding-box, linear-gradient(135deg, #0284C7, #22D3EE) border-box; }
+    .stage-lo { background: linear-gradient(#F8FDFB, #F8FDFB) padding-box, linear-gradient(135deg, #059669, #2DD4BF) border-box; }
+    .stage-rm { background: linear-gradient(#FAFAFF, #FAFAFF) padding-box, linear-gradient(135deg, #4F46E5, #A855F7) border-box; flex: 1; }
     .stage-head {
       padding-bottom: 4px;
       margin-bottom: 4px;
@@ -852,18 +1024,41 @@ export function buildStandaloneOfflineHtml(): string {
       color: #334155;
     }
 
-    /* ===== STEP BAR WITH 16 PROGRESS SEGMENTS ===== */
+    /* ===== STEP BAR WITH RUNNING PROGRESS RING + 16 SEGMENTS ===== */
     .step-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 14px;
-      padding: 9px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      padding: 7px 16px;
+      border: 1.5px solid transparent;
+      background:
+        linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+        linear-gradient(135deg, #38BDF8, #818CF8) border-box;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
       border-radius: 12px;
       flex-shrink: 0;
       flex-wrap: wrap;
+    }
+    .ring-wrap {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ring-pct {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
     }
     .progress-segs { display: flex; align-items: center; gap: 4px; }
     @media (max-width: 780px) { .progress-segs { display: none; } }
@@ -934,8 +1129,10 @@ export function buildStandaloneOfflineHtml(): string {
     .fm-row-btn.active-fwd { background: #F0F9FF; }
     .fm-row-btn.active-bwd { background: #FFF1F2; }
     .safety-box {
-      background: rgba(255, 251, 235, 0.85);
-      border: 1px solid #FDE68A;
+      border: 1.5px solid transparent;
+      background:
+        linear-gradient(#FFFBEB, #FFFBEB) padding-box,
+        linear-gradient(135deg, #F59E0B, #EA580C) border-box;
       border-radius: 12px;
       padding: 16px 20px;
       display: flex;
@@ -966,8 +1163,10 @@ export function buildStandaloneOfflineHtml(): string {
     @media (max-width: 900px) { .quick-strip { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 520px) { .quick-strip { grid-template-columns: 1fr; } }
     .quick-card {
-      background: #F8FAFC;
-      border: 1px solid #E2E8F0;
+      border: 1.5px solid transparent;
+      background:
+        linear-gradient(#F8FAFC, #F8FAFC) padding-box,
+        linear-gradient(135deg, #7DD3FC, #A5B4FC) border-box;
       border-radius: 8px;
       padding: 10px 14px;
       display: flex;
@@ -1054,7 +1253,13 @@ export function buildStandaloneOfflineHtml(): string {
         <button id="nav-matrix" onclick="switchView('matrix')">Flow Matrix</button>
         <button id="nav-cheatsheet" onclick="switchView('cheatsheet')">Cheat Sheet</button>
       </nav>
-      <div class="offline-note">100% Offline Single-File Edition</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="lang-switch" role="group" aria-label="Story and theory language" title="Switch Story &amp; Theory language (English / বাংলা)">
+          <button type="button" id="lang-en" class="lang-btn active" onclick="setLang('en')">EN</button>
+          <button type="button" id="lang-bn" class="lang-btn" onclick="setLang('bn')">বাংলা</button>
+        </div>
+        <div class="offline-note">100% Offline</div>
+      </div>
     </div>
   </header>
 
@@ -1073,7 +1278,25 @@ export function buildStandaloneOfflineHtml(): string {
       <div class="step-bar">
         <button class="btn" id="btn-prev" onclick="goStep(currentStep - 1)">← Previous</button>
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <span id="step-counter" style="font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;">Step 1 of 16</span>
+          <div id="progress-ring" class="ring-wrap" role="progressbar" aria-label="Course completion percentage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <svg viewBox="0 0 44 44" width="44" height="44" style="overflow:visible;">
+              <defs>
+                <linearGradient id="off-ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0284C7"/>
+                  <stop offset="100%" stop-color="#6366F1"/>
+                </linearGradient>
+                <linearGradient id="off-orbit-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.95"/>
+                  <stop offset="100%" stop-color="#818CF8" stop-opacity="0.15"/>
+                </linearGradient>
+              </defs>
+              <circle cx="22" cy="22" r="20" fill="none" stroke="url(#off-orbit-grad)" stroke-width="1.6" stroke-dasharray="24 102" stroke-linecap="round" class="animate-ring-orbit"/>
+              <circle cx="22" cy="22" r="16" fill="none" stroke="#E2E8F0" stroke-width="3.2"/>
+              <circle id="progress-ring-arc" cx="22" cy="22" r="16" fill="none" stroke="url(#off-ring-grad)" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="100.53" stroke-dashoffset="100.53" transform="rotate(-90 22 22)" style="transition:stroke-dashoffset 0.45s cubic-bezier(0.22,1,0.36,1);"/>
+            </svg>
+            <span id="progress-ring-pct" class="ring-pct">0%</span>
+          </div>
+          <span id="step-counter" style="font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;">Step 1 of 20</span>
           <div id="progress-segs" class="progress-segs" aria-label="Course progress"></div>
           <select id="step-select" onchange="goStep(Number(this.value))" style="padding:5px 10px;border:1px solid #CBD5E1;border-radius:8px;font-size:12px;background:#F8FAFC;max-width:230px;"></select>
         </div>
@@ -1100,6 +1323,7 @@ export function buildStandaloneOfflineHtml(): string {
 
   <script>
     const LESSONS = ${safeJson(LESSONS)};
+    const LESSONS_BN = ${safeJson(LESSONS_BN)};
     const FLOW_ROWS = ${safeJson(STAGE_FLOW_ROWS)};
     const CHEAT_SHEET = ${safeJson(CHEAT_SHEET)};
 
@@ -1111,7 +1335,7 @@ export function buildStandaloneOfflineHtml(): string {
       '$ Politely asking HEAD not to detach...',
       '$ Hiding secrets.env behind .gitignore...',
       '$ Bribing git merge to avoid conflicts...',
-      '$ All 16 lessons loaded — zero Wi-Fi needed!'
+      '$ All 20 lessons loaded — zero Wi-Fi needed!'
     ];
     let loaderDone = false;
     function dismissLoader() {
@@ -1138,6 +1362,7 @@ export function buildStandaloneOfflineHtml(): string {
 
     /* ===== APP STATE ===== */
     let currentView = 'tutorial';
+    let currentLang = 'en';
     let currentStep = 0;
     let currentState = JSON.parse(JSON.stringify(LESSONS[0].initialState));
     let historyStack = [];
@@ -1349,6 +1574,13 @@ export function buildStandaloneOfflineHtml(): string {
       renderTheoryPanel();
     }
 
+    function setLang(l) {
+      currentLang = l === 'bn' ? 'bn' : 'en';
+      document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+      document.getElementById('lang-bn').classList.toggle('active', currentLang === 'bn');
+      renderTheoryPanel();
+    }
+
     /* ===== VIEW 1: TUTORIAL (SAME AS LIVE APP) ===== */
     function renderStageDiagram() {
       const s = currentState;
@@ -1374,7 +1606,10 @@ export function buildStandaloneOfflineHtml(): string {
           + '<rect x="' + rx + '" y="0" width="240" height="19" rx="4" fill="#fff" stroke="' + col + '"/>'
           + '<text x="' + tx + '" y="13" text-anchor="middle" font-size="10" font-weight="700" fill="' + col + '">' + esc((isBack ? '← ' : '→ ') + f.label) + '</text>';
       } else {
-        arcSvg = '<text x="300" y="16" text-anchor="middle" font-size="10.5" font-weight="500" fill="' + (f ? '#0F172A' : '#64748B') + '">' + esc(f ? f.label : 'Click any command below to watch changes flow across all 4 stages') + '</text>';
+        const emptyHint = LESSONS[currentStep].commands.length > 0
+          ? 'Click any command below to watch changes flow across all 4 stages'
+          : 'Git runs Stages 1–3 locally on your computer · GitHub hosts Stage 4 in the cloud';
+        arcSvg = '<text x="300" y="16" text-anchor="middle" font-size="10.5" font-weight="500" fill="' + (f ? '#0F172A' : '#64748B') + '">' + esc(f ? f.label : emptyHint) + '</text>';
       }
 
       const dotsSvg = dotNodes.map(n => {
@@ -1472,6 +1707,13 @@ export function buildStandaloneOfflineHtml(): string {
 
     function renderCommandDeck() {
       const lesson = LESSONS[currentStep];
+      const deckEl = document.getElementById('command-deck-card');
+      if (!lesson.commands.length) {
+        deckEl.style.display = 'none';
+        deckEl.innerHTML = '';
+        return;
+      }
+      deckEl.style.display = '';
       const btns = lesson.commands.map(cmd => {
         const isLast = lastCmdId === cmd.id;
         const kindCls = cmd.kind === 'undo' ? 'undo' : cmd.kind === 'inspect' ? 'inspect' : '';
@@ -1497,26 +1739,36 @@ export function buildStandaloneOfflineHtml(): string {
         + '<button class="btn" style="padding:4px 9px;font-size:11px;" onclick="undoClick()" ' + (!historyStack.length ? 'disabled' : '') + '>↩ Undo</button>'
         + '<button class="btn" style="padding:4px 9px;font-size:11px;" onclick="resetStage()">↺ Reset</button>'
         + '</div></div>'
-        + '<div class="cmd-grid" style="flex-shrink:0;">' + btns + '</div>'
+        + '<div class="cmd-grid" style="flex-shrink:0;' + (lesson.commands.length === 1 ? 'grid-template-columns:1fr;' : '') + '">' + btns + '</div>'
         + '<div class="terminal">' + term + '</div>';
     }
 
     function renderTheoryPanel() {
       const l = LESSONS[currentStep];
+      const bn = currentLang === 'bn' ? LESSONS_BN[l.stepNumber] : null;
+      const storyTitle = bn ? bn.storyTitle : l.storyTitle;
+      const storyText = bn ? bn.storyText : l.storyText;
+      const theorySummary = bn ? bn.theorySummary : l.theorySummary;
+      const proTip = bn ? bn.proTip : l.proTip;
+      const lh = currentLang === 'bn' ? '1.85' : '1.72';
+      const theoryHeading = currentLang === 'bn' ? 'আসলে ভেতরে কী ঘটে?' : 'How Git Works Under the Hood';
       let body = '';
       if (theoryTab === 'story') {
-        body = '<div class="theory-stack">'
-          + '<div class="theory-section">'
-          +   '<h3>' + esc(l.storyTitle) + '</h3>'
-          +   '<p>' + fmt(l.storyText) + '</p>'
-          + '</div>'
-          + '<div class="theory-section theory-divider">'
-          +   '<h3>How Git Works Under the Hood</h3>'
-          +   '<p style="white-space:pre-line;">' + fmt(l.theorySummary) + '</p>'
+        const hasStory = Boolean(storyTitle || storyText);
+        body = '<div class="theory-stack" lang="' + currentLang + '">'
+          + (hasStory
+              ? '<div class="theory-section">'
+                + (storyTitle ? '<h3>' + esc(storyTitle) + '</h3>' : '')
+                + (storyText ? '<p style="line-height:' + lh + ';">' + fmt(storyText) + '</p>' : '')
+                + '</div>'
+              : '')
+          + '<div class="theory-section' + (hasStory ? ' theory-divider' : '') + '">'
+          +   '<h3>' + esc(theoryHeading) + '</h3>'
+          +   '<p style="white-space:pre-line;line-height:' + lh + ';">' + fmt(theorySummary) + '</p>'
           + '</div>'
           + '<div class="tip-row">'
           +   '<span style="font-size:16px;line-height:1.2;">💡</span>'
-          +   '<div><strong style="color:#0F172A;">Practical Tip:</strong> ' + fmt(l.proTip) + '</div>'
+          +   '<div style="line-height:' + lh + ';"><strong style="color:#0F172A;">Practical Tip:</strong> ' + fmt(proTip) + '</div>'
           + '</div>'
           + '</div>';
       } else if (theoryTab === 'vocabulary') {
@@ -1549,6 +1801,17 @@ export function buildStandaloneOfflineHtml(): string {
       renderCommandDeck();
       renderTheoryPanel();
       renderProgressSegments();
+      const pct = Math.round((currentStep / Math.max(1, LESSONS.length - 1)) * 100);
+      const circ = 2 * Math.PI * 16;
+      const arcEl = document.getElementById('progress-ring-arc');
+      const pctEl = document.getElementById('progress-ring-pct');
+      const ringEl = document.getElementById('progress-ring');
+      if (arcEl) arcEl.setAttribute('stroke-dashoffset', String(circ * (1 - pct / 100)));
+      if (pctEl) pctEl.textContent = pct + '%';
+      if (ringEl) {
+        ringEl.setAttribute('aria-valuenow', String(pct));
+        ringEl.setAttribute('title', 'Course progress: ' + pct + '% (Step ' + (currentStep + 1) + ' of ' + LESSONS.length + ')');
+      }
       document.getElementById('step-counter').textContent = 'Step ' + (currentStep + 1) + ' of ' + LESSONS.length;
       document.getElementById('btn-prev').disabled = currentStep === 0;
       document.getElementById('btn-next').disabled = currentStep === LESSONS.length - 1;
@@ -1732,16 +1995,16 @@ export function buildStandaloneOfflineHtml(): string {
       const activeColor = isForward ? '#0284C7' : '#DC2626';
 
       const boxes = [
-        { id: 'workspace', title: 'Workspace', sub: 'Working Directory', x: 45, fill: '#FFFDF9', stroke: '#F59E0B', text: '#92400E' },
-        { id: 'staging', title: 'Staging Area', sub: 'Git Index', x: 285, fill: '#F9FCFF', stroke: '#0284C7', text: '#075985' },
-        { id: 'local', title: 'Local Repo', sub: '.git History', x: 525, fill: '#F8FDFB', stroke: '#059669', text: '#065F46' },
-        { id: 'remote', title: 'Remote Repo', sub: 'GitHub Origin', x: 785, fill: '#FAFAFF', stroke: '#4F46E5', text: '#3730A3' }
+        { id: 'workspace', title: 'Workspace', sub: 'Working Directory', x: 45, fill: '#FFFDF9', stroke: 'url(#fm-g-ws)', text: '#92400E' },
+        { id: 'staging', title: 'Staging Area', sub: 'Git Index', x: 285, fill: '#F9FCFF', stroke: 'url(#fm-g-st)', text: '#075985' },
+        { id: 'local', title: 'Local Repo', sub: '.git History', x: 525, fill: '#F8FDFB', stroke: 'url(#fm-g-lo)', text: '#065F46' },
+        { id: 'remote', title: 'Remote Repo', sub: 'GitHub Origin', x: 785, fill: '#FAFAFF', stroke: 'url(#fm-g-rm)', text: '#3730A3' }
       ];
 
       const boxesSvg = boxes.map(b => {
         const isEnd = sel.from === b.id || sel.to === b.id;
         return '<g>'
-          + '<rect x="' + b.x + '" y="84" width="160" height="72" rx="12" fill="' + b.fill + '" stroke="' + (isEnd ? '#0F172A' : b.stroke) + '" stroke-width="' + (isEnd ? '2.5' : '1.5') + '"/>'
+          + '<rect x="' + b.x + '" y="84" width="160" height="72" rx="12" fill="' + b.fill + '" stroke="' + b.stroke + '" stroke-width="' + (isEnd ? '3' : '2') + '"/>'
           + '<text x="' + (b.x + 80) + '" y="116" text-anchor="middle" font-size="14" font-weight="700" fill="#0F172A">' + b.title + '</text>'
           + '<text x="' + (b.x + 80) + '" y="136" text-anchor="middle" font-size="11" fill="' + b.text + '">' + b.sub + '</text>'
           + '</g>';
@@ -1774,6 +2037,10 @@ export function buildStandaloneOfflineHtml(): string {
         +   '<defs>'
         +     '<marker id="fm-arrow-fwd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#0284C7"/></marker>'
         +     '<marker id="fm-arrow-bwd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#DC2626"/></marker>'
+        +     '<linearGradient id="fm-g-ws" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#FB7185"/></linearGradient>'
+        +     '<linearGradient id="fm-g-st" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0284C7"/><stop offset="100%" stop-color="#22D3EE"/></linearGradient>'
+        +     '<linearGradient id="fm-g-lo" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#059669"/><stop offset="100%" stop-color="#2DD4BF"/></linearGradient>'
+        +     '<linearGradient id="fm-g-rm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4F46E5"/><stop offset="100%" stop-color="#A855F7"/></linearGradient>'
         +   '</defs>'
         +   boxesSvg
         +   '<line x1="205" y1="120" x2="285" y2="120" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="3 3"/>'
@@ -1789,11 +2056,11 @@ export function buildStandaloneOfflineHtml(): string {
         + '</div>'
         + '</section>'
         + '<div class="fm-two-col">'
-        +   '<section class="card card-lg">'
+        +   '<section class="card card-sky card-lg">'
         +     '<div style="display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid #F1F5F9;"><span style="color:#0284C7;font-weight:700;">→</span><h2 style="font-size:15.5px;font-weight:700;">1. Forward Commands (Advance Changes)</h2></div>'
         +     '<div style="margin-top:6px;">' + renderRowList(forwardRows, true) + '</div>'
         +   '</section>'
-        +   '<section class="card card-lg">'
+        +   '<section class="card card-rose card-lg">'
         +     '<div style="display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid #F1F5F9;"><span style="color:#DC2626;font-weight:700;">←</span><h2 style="font-size:15.5px;font-weight:700;">2. Backward Commands (Undo &amp; Rewind)</h2></div>'
         +     '<div style="margin-top:6px;">' + renderRowList(backwardRows, false) + '</div>'
         +   '</section>'

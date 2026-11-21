@@ -64,6 +64,15 @@
   }
 }
 
+@keyframes ringOrbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-flow-forward {
   stroke-dasharray: 6 6;
   animation: flowDashForward 0.65s linear infinite;
@@ -78,10 +87,90 @@
   animation: itemArrive 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.animate-ring-orbit {
+  transform-origin: 22px 22px;
+  animation: ringOrbit 2.4s linear infinite;
+}
+
+/* Two-color gradient borders for cards and stage blocks */
+.grad-card {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+    linear-gradient(135deg, #38BDF8, #818CF8) border-box;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.grad-card-sky {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+    linear-gradient(135deg, #0EA5E9, #2DD4BF) border-box;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.grad-card-rose {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+    linear-gradient(135deg, #F43F5E, #FB923C) border-box;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.grad-card-amber {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#FFFBEB, #FFFBEB) padding-box,
+    linear-gradient(135deg, #F59E0B, #EA580C) border-box;
+}
+
+.grad-card-subtle {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#F8FAFC, #F8FAFC) padding-box,
+    linear-gradient(135deg, #7DD3FC, #A5B4FC) border-box;
+}
+
+.grad-stage-ws {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#FFFDF9, #FFFDF9) padding-box,
+    linear-gradient(135deg, #F59E0B, #FB7185) border-box;
+}
+
+.grad-stage-st {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#F9FCFF, #F9FCFF) padding-box,
+    linear-gradient(135deg, #0284C7, #22D3EE) border-box;
+}
+
+.grad-stage-lo {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#F8FDFB, #F8FDFB) padding-box,
+    linear-gradient(135deg, #059669, #2DD4BF) border-box;
+}
+
+.grad-stage-rm {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#FAFAFF, #FAFAFF) padding-box,
+    linear-gradient(135deg, #4F46E5, #A855F7) border-box;
+}
+
+.grad-group-cloud {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#EEF2FF, #F5F3FF) padding-box,
+    linear-gradient(135deg, #6366F1, #C084FC) border-box;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-flow-forward,
   .animate-flow-backward,
-  .animate-item-arrive {
+  .animate-item-arrive,
+  .animate-ring-orbit {
     animation: none;
   }
 }

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { BookOpen, Tag, SlidersHorizontal, Lightbulb } from 'lucide-react';
-import { LessonStep } from '../types/git';
+import { LanguageMode, LessonStep } from '../types/git';
+import { LESSONS_BN } from '../data/lessonsBn';
 
 interface TheoryPanelProps {
   lesson: LessonStep;
+  lang: LanguageMode;
 }
 
 type TheoryTab = 'story' | 'vocabulary' | 'flags';
@@ -32,13 +34,18 @@ function renderFormattedText(text: string): React.ReactNode[] {
   });
 }
 
-export const TheoryPanel: React.FC<TheoryPanelProps> = ({ lesson }) => {
+export const TheoryPanel: React.FC<TheoryPanelProps> = ({ lesson, lang }) => {
   const [activeTab, setActiveTab] = useState<TheoryTab>('story');
+  const bn = lang === 'bn' ? LESSONS_BN[lesson.stepNumber] : undefined;
+  const storyTitle = bn ? bn.storyTitle : lesson.storyTitle;
+  const storyText = bn ? bn.storyText : lesson.storyText;
+  const theorySummary = bn ? bn.theorySummary : lesson.theorySummary;
+  const proTip = bn ? bn.proTip : lesson.proTip;
 
   return (
     <section
       aria-label="Story, Theory, Vocabulary, and Flags"
-      className="bg-white border border-slate-200 rounded-xl p-5 md:p-6 flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden"
+      className="grad-card rounded-xl p-5 md:p-6 flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden"
     >
       {/* Header + Segmented View Selector (pinned at top of 55% column) */}
       <div className="flex flex-col gap-3 pb-4 border-b border-slate-100 shrink-0">
@@ -109,35 +116,55 @@ export const TheoryPanel: React.FC<TheoryPanelProps> = ({ lesson }) => {
       {/* Spacious Internally Scrollable Reading Area */}
       <div className="mt-4 flex-1 min-h-0 overflow-y-auto pr-2">
         {activeTab === 'story' && (
-          <div className="space-y-6">
+          <div className="space-y-6" lang={lang === 'bn' ? 'bn' : 'en'}>
             {/* CCTV Room Story */}
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                {lesson.storyTitle}
-              </h3>
-              <p className="mt-2 text-[15px] text-slate-700 leading-7">
-                {renderFormattedText(lesson.storyText)}
-              </p>
-            </div>
+            {(storyTitle || storyText) && (
+              <div>
+                {storyTitle && (
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {storyTitle}
+                  </h3>
+                )}
+                {storyText && (
+                  <p
+                    className={`mt-2 text-[15px] text-slate-700 ${
+                      lang === 'bn' ? 'leading-[1.85]' : 'leading-7'
+                    }`}
+                  >
+                    {renderFormattedText(storyText)}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Technical Theory */}
-            <div className="pt-5 border-t border-slate-100">
+            <div className={(storyTitle || storyText) ? 'pt-5 border-t border-slate-100' : ''}>
               <h3 className="text-sm font-semibold text-slate-900">
-                How Git Works Under the Hood
+                {lang === 'bn'
+                  ? 'আসলে ভেতরে কী ঘটে?'
+                  : 'How Git Works Under the Hood'}
               </h3>
-              <div className="mt-2 text-[15px] text-slate-700 leading-7 whitespace-pre-line">
-                {renderFormattedText(lesson.theorySummary)}
+              <div
+                className={`mt-2 text-[15px] text-slate-700 whitespace-pre-line ${
+                  lang === 'bn' ? 'leading-[1.85]' : 'leading-7'
+                }`}
+              >
+                {renderFormattedText(theorySummary)}
               </div>
             </div>
 
             {/* Pro Tip */}
             <div className="pt-5 border-t border-slate-100 flex items-start gap-3">
               <Lightbulb className="w-4 h-4 text-amber-600 mt-1 shrink-0" />
-              <div className="text-sm text-slate-700 leading-relaxed">
+              <div
+                className={`text-sm text-slate-700 ${
+                  lang === 'bn' ? 'leading-[1.8]' : 'leading-relaxed'
+                }`}
+              >
                 <span className="font-semibold text-slate-900">
-                  Practical Tip:{' '}
+                  {lang === 'bn' ? 'Practical Tip: ' : 'Practical Tip: '}
                 </span>
-                {renderFormattedText(lesson.proTip)}
+                {renderFormattedText(proTip)}
               </div>
             </div>
           </div>

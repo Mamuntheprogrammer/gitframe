@@ -45,7 +45,7 @@ export const CheatSheet: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Quick Reference Header + Filters */}
-      <section className="bg-white border border-slate-200 rounded-xl p-5 md:p-6">
+      <section className="grad-card rounded-xl p-5 md:p-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-slate-100">
           <div>
             <h1 className="text-xl font-semibold text-slate-900">
@@ -97,7 +97,7 @@ export const CheatSheet: React.FC = () => {
           ].map((quick) => (
             <div
               key={quick.cmd}
-              className="rounded-lg bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 flex flex-col justify-between"
+              className="rounded-lg grad-card-subtle px-3.5 py-2.5 flex flex-col justify-between"
             >
               <span className="text-[11px] font-medium text-slate-500">
                 {quick.label}
@@ -111,7 +111,7 @@ export const CheatSheet: React.FC = () => {
       </section>
 
       {/* Cheat Sheet Command Table */}
-      <section className="bg-white border border-slate-200 rounded-xl p-5 md:p-6">
+      <section className="grad-card rounded-xl p-5 md:p-6">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs text-slate-500">
           <span>Showing {filtered.length} practical commands</span>
           <span>Click Copy on any row</span>

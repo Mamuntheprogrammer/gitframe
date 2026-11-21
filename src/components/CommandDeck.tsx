@@ -32,7 +32,7 @@ export const CommandDeck: React.FC<CommandDeckProps> = ({
   return (
     <section
       aria-label="Interactive Git Commands"
-      className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col lg:flex-1 lg:min-h-0 lg:overflow-hidden"
+      className="grad-card rounded-xl p-3 flex flex-col lg:flex-1 lg:min-h-0 lg:overflow-hidden"
     >
       <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 shrink-0">
         <div className="min-w-0">
@@ -62,8 +62,12 @@ export const CommandDeck: React.FC<CommandDeckProps> = ({
         </div>
       </div>
 
-      {/* Clickable 2-Column Command Buttons */}
-      <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto pr-0.5">
+      {/* Clickable Command Buttons (1 column if single command, 2 columns otherwise) */}
+      <div
+        className={`mt-2 grid grid-cols-1 gap-2 overflow-y-auto pr-0.5 ${
+          commands.length === 1 ? '' : 'sm:grid-cols-2'
+        }`}
+      >
         {commands.map((cmd) => {
           const isLast = lastRunId === cmd.id;
           const styleMap = {

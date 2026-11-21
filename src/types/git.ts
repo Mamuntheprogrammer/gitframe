@@ -124,7 +124,19 @@ export interface CommandEffect {
     | 'revert_head'
     | 'push_revert'
     | 'checkout_past'
-    | 'checkout_main';
+    | 'checkout_main'
+    | 'push_feature'
+    | 'open_pr'
+    | 'pr_review_fix'
+    | 'push_pr_update'
+    | 'pr_merge_cleanup'
+    | 'fork_clone'
+    | 'upstream_add'
+    | 'push_fork_pr'
+    | 'remote_list_upstream'
+    | 'upstream_fetch'
+    | 'upstream_merge'
+    | 'upstream_push_origin';
   arg?: string;
   arg2?: string;
 }
@@ -136,6 +148,15 @@ export interface GitCommandAction {
   kind: 'do' | 'undo' | 'inspect';
   routeLabel: string;
   effect: CommandEffect;
+}
+
+export type LanguageMode = 'en' | 'bn';
+
+export interface LessonBnContent {
+  storyTitle: string;
+  storyText: string;
+  theorySummary: string;
+  proTip: string;
 }
 
 export interface LessonStep {
